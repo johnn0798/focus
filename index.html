@@ -69,9 +69,29 @@ main{width:min(100%,520px);margin:0 auto;padding:0 clamp(20px,6vw,32px)}
 .nav{position:absolute;top:14px;left:clamp(20px,6vw,32px);display:inline-flex;align-items:center;gap:8px;background:none;border:0;padding:0;min-height:44px;color:var(--mut);font-size:15px;letter-spacing:.03em;transition:color 300ms ease}
 .nav:hover{color:var(--fg)}
 .row.cat{padding:0 clamp(14px,4vw,22px)}
-.seg{display:flex;gap:4px;width:100%;padding:4px;background:var(--bg);border:1px solid var(--line);border-radius:18px}
-.seg button{flex:1;height:44px;border:0;border-radius:14px;background:none;color:var(--mut);font-size:clamp(14px,3.8vw,16px);transition:background 300ms ease,color 300ms ease}
-.seg button[aria-pressed=true]{background:var(--line);color:var(--fg)}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);width:100%}
+.seg button{position:relative;height:64px;padding:0 0 12px;border:0;background:none;color:var(--mut);font-size:clamp(15px,4vw,17px);letter-spacing:.02em;transition:color 420ms ease}
+.seg button[aria-pressed=true]{color:var(--fg)}
+.seg button::after{content:"";position:absolute;left:50%;bottom:14px;width:22px;height:2px;margin-left:-11px;border-radius:2px;background:var(--line);transition:background 420ms ease,box-shadow 420ms ease}
+.seg button[aria-pressed=true]::after{background:var(--acc);box-shadow:0 0 6px 1px rgba(200,245,96,.7),0 0 18px 4px rgba(200,245,96,.25)}
+button.today{display:block;width:100%;background:none;border:0;padding:8px 0;margin:2px 0 calc(clamp(36px,9vh,64px) - 8px);transition:opacity 200ms ease}
+button.today:active{opacity:.6}
+.fl{animation:fl 1100ms ease}
+@keyframes fl{0%{opacity:.25}100%{opacity:1}}
+.ml.sec{background:none;border:0;padding:12px 24px 4px 0;margin:-12px 0 -4px;text-align:left;font-size:14px}
+#add{position:fixed;inset:0;z-index:6;display:flex;align-items:flex-end;justify-content:center;background:rgba(5,6,8,.62);opacity:0;visibility:hidden;transition:opacity 320ms ease,visibility 0s linear 320ms}
+#add.on{opacity:1;visibility:visible;transition:opacity 320ms ease,visibility 0s}
+.sheet{width:min(100%,520px);background:var(--card);border:1px solid var(--line);border-bottom:0;border-radius:28px 28px 0 0;padding:26px clamp(20px,6vw,32px) calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateY(24px);transition:transform 520ms cubic-bezier(.22,1,.36,1)}
+#add.on .sheet{transform:none}
+.sheet:focus{outline:0}
+.sheet h2{margin:0;font-weight:400;font-size:19px}
+.sheet .sd{margin:4px 0 0;color:var(--mut);font-size:14px;text-transform:capitalize}
+.sheet .row{padding:0;min-height:80px;border-top:0}
+.sheet .seg{border-top:1px solid var(--line)}
+.sheet .go{margin-top:12px;height:64px}
+.plain{display:block;width:100%;min-height:52px;margin-top:4px;background:none;border:0;color:var(--mut);font-size:15px}
+.blk .rm{flex:none;min-width:40px;height:40px;margin-right:-10px;background:none;border:0;color:var(--mut);font-size:20px;line-height:1;opacity:.7}
+.blk .rm.arm{font-size:13px;color:var(--fg);opacity:1;padding:0 10px}
 #rep{min-height:100%;padding-bottom:56px}
 #rep main{padding-top:68px}
 .daynav{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
@@ -108,7 +128,7 @@ main{width:min(100%,520px);margin:0 auto;padding:0 clamp(20px,6vw,32px)}
 <button type="button" class="nav" id="open-rep" aria-label="Relatório do dia"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M3 11V7M7 11V3M11 11V8"/></svg>Relatório</button>
 <main>
 <div class="brand">Hiperfoco</div>
-<div class="today" id="today">Hoje: 0min de foco</div>
+<button type="button" class="today" id="today" aria-label="Hoje: 0min de foco. Adicionar tempo manualmente">Hoje: 0min de foco</button>
 <div class="card">
 <div class="row first"><label for="v-focus">Duração do foco (min)</label><div class="step" data-k="focus" data-l="duração do foco"></div></div>
 <div class="row"><span id="l-brk">Intervalos</span><button type="button" class="sw" role="switch" aria-checked="false" aria-labelledby="l-brk" data-sw="brk"></button></div>
@@ -125,12 +145,22 @@ main{width:min(100%,520px);margin:0 auto;padding:0 clamp(20px,6vw,32px)}
 <main>
 <div class="daynav"><button type="button" id="d-prev" aria-label="Dia anterior">‹</button><span id="d-title" aria-live="polite">Hoje</span><button type="button" id="d-next" aria-label="Próximo dia">›</button></div>
 <div class="card">
-<div class="mrow"><span class="ml">Tempo de foco</span><span class="mv xl" id="m-foco">0min</span></div>
+<div class="mrow"><button type="button" class="ml sec" id="rep-add" aria-label="Tempo de foco. Adicionar tempo manualmente">Tempo de foco</button><span class="mv xl" id="m-foco">0min</span></div>
 <div class="mgrid"><div class="mc"><span class="ml">Blocos</span><span class="mv" id="m-blocos">0</span></div><div class="mc"><span class="ml">Média por bloco</span><span class="mv" id="m-media">—</span><span class="ms" id="m-plan"></span></div></div>
 </div>
 <div class="card"><div class="dbox"><span class="ml">Distribuição do tempo</span><div class="bar" id="bar" role="img"></div><ul class="lst" id="dl"></ul></div></div>
 <div class="card"><div class="dbox"><span class="ml">Blocos do dia</span><ul class="lst blk" id="bl"></ul></div></div>
 </main>
+</div>
+<div id="add" aria-hidden="true">
+<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="add-t" tabindex="-1">
+<h2 id="add-t">Adicionar tempo de foco</h2>
+<p class="sd" id="add-d">Hoje</p>
+<div class="row first"><label for="v-mm">Tempo (min)</label><div class="step" data-k="mm" data-l="tempo de foco" data-st="5"></div></div>
+<div class="seg" role="group" aria-label="Categoria do tempo"><button type="button" aria-pressed="true" aria-label="Vendas" data-mcat="v">Vendas</button><button type="button" aria-pressed="false" aria-label="Gestão e desenvolvimento" data-mcat="g">Gestão</button><button type="button" aria-pressed="false" aria-label="Atividade livre" data-mcat="l">Livre</button></div>
+<button type="button" class="go" id="add-ok">Adicionar</button>
+<button type="button" class="plain" id="add-x">Cancelar</button>
+</div>
 </div>
 <div id="imm" aria-live="off"></div>
 <script>
@@ -138,26 +168,29 @@ main{width:min(100%,520px);margin:0 auto;padding:0 clamp(20px,6vw,32px)}
 const $=s=>document.querySelector(s);
 const ls={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const cfg=Object.assign({focus:30,brk:false,brkMin:5,chk:false,chkMin:10,cat:'v'},ls.get('hf_cfg',{}));
-const LIM={focus:[1,240],brkMin:[1,60],chkMin:[1,60]};
+const man={mm:30,cat:cfg.cat};
+const T=k=>k==='mm'?man:cfg;
+const LIM={focus:[1,240],brkMin:[1,60],chkMin:[1,60],mm:[1,720]};
 const dkey=()=>new Date().toLocaleDateString('sv');
 const fmt=s=>{const m=Math.floor(s/60),h=Math.floor(m/60),r=m%60;return h?(r?h+'h '+r+'min':h+'h'):m+'min'};
 const p2=n=>String(n).padStart(2,'0');
 const clk=ms=>{const t=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return h?h+':'+p2(m)+':'+p2(s):p2(m)+':'+p2(s)};
 const today=()=>(ls.get('hf_days',{})[dkey()]||0);
-const addDay=(sec,rec)=>{const d=ls.get('hf_days',{});d[dkey()]=(d[dkey()]||0)+sec;ls.set('hf_days',d);const a=ls.get('hf_sess',[]);a.push(rec);ls.set('hf_sess',a.slice(-1000))};
+const addDay=(sec,rec,key=dkey())=>{const d=ls.get('hf_days',{});d[key]=(d[key]||0)+sec;ls.set('hf_days',d);const a=ls.get('hf_sess',[]);a.push(rec);ls.set('hf_sess',a.slice(-1000))};
 
 /* configurações */
 const render=()=>{
-  for(const k in LIM){const i=$('#v-'+k);if(i&&document.activeElement!==i)i.value=cfg[k]}
+  for(const k in LIM){const i=$('#v-'+k);if(i&&document.activeElement!==i)i.value=T(k)[k]}
   document.querySelectorAll('[data-sw]').forEach(b=>{const k=b.dataset.sw,on=!!cfg[k],r=$('#r-'+k);b.setAttribute('aria-checked',on);r.classList.toggle('is-open',on);r.inert=!on});
   document.querySelectorAll('[data-cat]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cat===cfg.cat));
-  $('#today').textContent='Hoje: '+fmt(today())+' de foco';
+  document.querySelectorAll('[data-mcat]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mcat===man.cat));
+  const tt='Hoje: '+fmt(today())+' de foco',td=$('#today');td.textContent=tt;td.setAttribute('aria-label',tt+'. Adicionar tempo manualmente');
 };
-const nudge=(k,d)=>{cfg[k]=Math.min(LIM[k][1],Math.max(LIM[k][0],cfg[k]+d));ls.set('hf_cfg',cfg);render()};
+const nudge=(k,d)=>{const o=T(k);o[k]=Math.min(LIM[k][1],Math.max(LIM[k][0],o[k]+d));if(o===cfg)ls.set('hf_cfg',cfg);render()};
 document.querySelectorAll('.step').forEach(el=>{
-  const k=el.dataset.k,l=el.dataset.l;
-  el.innerHTML='<button type="button" data-d="-1" aria-label="Diminuir '+l+'">\u2212</button><input id="v-'+k+'" inputmode="numeric" autocomplete="off" aria-label="'+l+' em minutos"><button type="button" data-d="1" aria-label="Aumentar '+l+'">+</button>';
-  el.querySelector('input').addEventListener('change',e=>{const v=parseInt(e.target.value,10);if(!isNaN(v)){cfg[k]=Math.min(LIM[k][1],Math.max(LIM[k][0],v));ls.set('hf_cfg',cfg)}e.target.value=cfg[k];render()});
+  const k=el.dataset.k,l=el.dataset.l,st=+el.dataset.st||1;
+  el.innerHTML='<button type="button" data-d="-'+st+'" aria-label="Diminuir '+l+'">\u2212</button><input id="v-'+k+'" inputmode="numeric" autocomplete="off" aria-label="'+l+' em minutos"><button type="button" data-d="'+st+'" aria-label="Aumentar '+l+'">+</button>';
+  el.querySelector('input').addEventListener('change',e=>{const o=T(k),v=parseInt(e.target.value,10);if(!isNaN(v)){o[k]=Math.min(LIM[k][1],Math.max(LIM[k][0],v));if(o===cfg)ls.set('hf_cfg',cfg)}e.target.value=o[k];render()});
 });
 let hold,rep,skip=false;
 const stop=()=>{clearTimeout(hold);clearInterval(rep)};
@@ -167,6 +200,8 @@ addEventListener('blur',stop);
 document.addEventListener('click',e=>{
   const b=e.target.closest('.step button');
   if(b){if(skip){skip=false;return}nudge(b.parentElement.dataset.k,+b.dataset.d);return}
+  const mc=e.target.closest('[data-mcat]');
+  if(mc){man.cat=mc.dataset.mcat;render();return}
   const ct=e.target.closest('[data-cat]');
   if(ct){cfg.cat=ct.dataset.cat;ls.set('hf_cfg',cfg);render();return}
   const s=e.target.closest('[data-sw]');
@@ -289,7 +324,7 @@ const renderRep=()=>{
   bar.innerHTML=tot?rows.filter(c=>sums[c.k]).map(c=>'<i style="width:'+(sums[c.k]/tot*100)+'%;background:'+c.c+'"></i>').join(''):'';
   bar.setAttribute('aria-label',rows.filter(c=>sums[c.k]).map(c=>c.n+' '+fmt(sums[c.k])).join(', ')||'Sem dados neste dia');
   $('#dl').innerHTML=rows.map(c=>{const v=sums[c.k]||0;return '<li><i class="dot" style="background:'+c.c+'"></i><span class="n">'+c.n+'</span><span class="t">'+fmt(v)+'</span><span class="p">'+(tot?Math.round(v/tot*100):0)+'%</span></li>'}).join('');
-  $('#bl').innerHTML=n?all.map(r=>{const c=catOf(r.cat),t=new Date(r.s).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});return '<li><span class="tm">'+t+'</span><i class="dot" style="background:'+c.c+'"></i><span class="n">'+c.n+'</span><span class="t">'+fd(r.f)+(r.st!=='completed'?'<em>de '+fmt(r.pl)+'</em>':'')+'</span></li>'}).join(''):'<li class="empty">Nenhum bloco neste dia.</li>';
+  $('#bl').innerHTML=n?all.map(r=>{const c=catOf(r.cat),t=new Date(r.s).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});return '<li><span class="tm">'+t+'</span><i class="dot" style="background:'+c.c+'"></i><span class="n">'+c.n+'</span><span class="t">'+fd(r.f)+(r.st==='manual'?'<em>manual</em>':r.st!=='completed'?'<em>de '+fmt(r.pl)+'</em>':'')+'</span>'+(r.st==='manual'&&r.id?'<button type="button" class="rm" data-rm="'+r.id+'" aria-label="Remover tempo manual">\u00d7</button>':'')+'</li>'}).join(''):'<li class="empty">Nenhum bloco neste dia.</li>';
 };
 const openRep=()=>{rd=0;$('#home').hidden=true;repEl.hidden=false;renderRep();scrollTo(0,0)};
 const closeRep=()=>{repEl.hidden=true;$('#home').hidden=false;render()};
@@ -297,7 +332,55 @@ $('#open-rep').addEventListener('click',openRep);
 $('#rep-back').addEventListener('click',closeRep);
 $('#d-prev').addEventListener('click',()=>{rd--;renderRep()});
 $('#d-next').addEventListener('click',()=>{if(rd<0){rd++;renderRep()}});
-addEventListener('keydown',e=>{if(e.key==='Escape'&&!repEl.hidden)closeRep()});
+/* tempo manual */
+const addEl=$('#add'),addOn=()=>addEl.classList.contains('on');
+let addOff=0,addFrom=null;
+const flash=el=>{el.classList.remove('fl');void el.offsetWidth;el.classList.add('fl')};
+const openAdd=off=>{
+  if(S)return;
+  addOff=off;addFrom=document.activeElement;
+  man.mm=30;man.cat=cfg.cat;
+  const d=new Date();d.setDate(d.getDate()+off);
+  $('#add-d').textContent=off===0?'Hoje':off===-1?'Ontem':d.toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short'});
+  render();
+  [$('#home'),repEl].forEach(x=>x.inert=true);
+  addEl.setAttribute('aria-hidden','false');addEl.classList.add('on');
+  addEl.querySelector('.sheet').focus({preventScroll:true});
+};
+const closeAdd=()=>{
+  addEl.classList.remove('on');addEl.setAttribute('aria-hidden','true');
+  [$('#home'),repEl].forEach(x=>x.inert=false);
+  try{addFrom&&addFrom.isConnected&&addFrom.focus({preventScroll:true})}catch(e){}
+};
+const addManual=()=>{
+  const v=parseInt($('#v-mm').value,10);if(!isNaN(v))man.mm=Math.min(LIM.mm[1],Math.max(LIM.mm[0],v));
+  const sec=man.mm*60,d=new Date();d.setDate(d.getDate()+addOff);
+  const key=d.toLocaleDateString('sv');
+  let st;
+  if(addOff===0){st=new Date(now()-sec*1000);const z=new Date();z.setHours(0,0,0,0);if(st<z)st=z}
+  else{st=new Date(d);st.setHours(12,0,0,0)}
+  addDay(sec,{id:'m'+now().toString(36)+Math.random().toString(36).slice(2,6),s:st.toISOString(),f:sec,p:0,c:0,pl:sec,cat:man.cat,st:'manual'},key);
+  addFrom=null;closeAdd();render();
+  if(repEl.hidden)flash($('#today'));else{renderRep();flash($('#m-foco'))}
+};
+const delManual=id=>{
+  const a=ls.get('hf_sess',[]),i=a.findIndex(r=>r.id===id);if(i<0)return;
+  const r=a[i],k=new Date(r.s).toLocaleDateString('sv'),d=ls.get('hf_days',{});
+  d[k]=Math.max(0,(d[k]||0)-r.f);ls.set('hf_days',d);
+  a.splice(i,1);ls.set('hf_sess',a);renderRep();render();
+};
+$('#today').addEventListener('click',()=>openAdd(0));
+$('#rep-add').addEventListener('click',()=>openAdd(rd));
+$('#add-ok').addEventListener('click',addManual);
+$('#add-x').addEventListener('click',closeAdd);
+addEl.addEventListener('click',e=>{if(e.target===addEl)closeAdd()});
+$('#bl').addEventListener('click',e=>{
+  const b=e.target.closest('[data-rm]');if(!b)return;
+  if(b.dataset.armed){delManual(b.dataset.rm);return}
+  b.dataset.armed='1';b.textContent='Remover?';b.classList.add('arm');
+  setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent='\u00d7';b.classList.remove('arm')}},3000);
+});
+addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(addOn()){closeAdd();return}if(!repEl.hidden)closeRep()});
 addEventListener('pagehide',()=>persist());
 document.addEventListener('visibilitychange',()=>{if(document.hidden)persist()});
 try{const r=ls.get('hf_run',null);if(r&&now()-r.at<216e5&&r.acc<r.plan){S={st:'pause',cat:r.cat,plan:r.plan,acc:r.acc,pz:r.pz||0,checks:r.checks||0,t:r.t,pAt:now(),seg:0};$('#home').hidden=true;tm=setInterval(tick,200);ui()}else if(r)ls.set('hf_run',null)}catch(e){}
