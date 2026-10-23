@@ -1,2295 +1,308 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Hiperfoco" />
-  <meta name="description" content="Blocos de trabalho profundo. Um bloco de cada vez." />
-  <title>Hiperfoco — presença no trabalho</title>
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
-  <style>
-    /* =====================================================
-       DESIGN TOKENS
-    ===================================================== */
-    :root {
-      --bg:           #0d0f12;
-      --bg-card:      #13161b;
-      --border:       #1e2329;
-      --text:         #e8e4da;
-      --text-muted:   #5a6070;
-      --text-soft:    #8a929f;
-      --lime:         #b8f53a;
-      --lime-dim:     #8fbe1f;
-      --lime-bg:      rgba(184,245,58,0.08);
-      --danger:       #e05c5c;
-      --radius:       14px;
-      --radius-sm:    8px;
-      --safe-t:       env(safe-area-inset-top, 0px);
-      --safe-b:       env(safe-area-inset-bottom, 0px);
-      --safe-l:       env(safe-area-inset-left, 0px);
-      --safe-r:       env(safe-area-inset-right, 0px);
-    }
-
-    /* =====================================================
-       RESET & BASE
-    ===================================================== */
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html {
-      height: 100%;
-      background: var(--bg);
-    }
-
-    body {
-      font-family: 'DM Sans', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100dvh;
-      min-height: 100svh;
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    button {
-      font-family: inherit;
-      cursor: pointer;
-      border: none;
-      background: none;
-      color: inherit;
-    }
-
-    input {
-      font-family: inherit;
-    }
-
-    /* =====================================================
-       SCREENS
-    ===================================================== */
-    .screen {
-      display: none;
-      width: 100%;
-      min-height: 100dvh;
-      min-height: 100svh;
-      opacity: 0;
-    }
-    .screen.active {
-      display: flex;
-      animation: screenFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    @keyframes screenFadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(4px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* =====================================================
-       HOME SCREEN
-    ===================================================== */
-    #screen-home {
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      padding:
-        calc(var(--safe-t) + 16px)
-        calc(var(--safe-r) + 20px)
-        calc(var(--safe-b) + 24px)
-        calc(var(--safe-l) + 20px);
-    }
-
-    .home-header {
-      width: 100%;
-      max-width: 420px;
-      display: flex;
-      justify-content: flex-end;
-      padding-bottom: 8px;
-      flex-shrink: 0;
-    }
-
-    .btn-header {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-soft);
-      letter-spacing: 0.04em;
-      padding: 8px 14px;
-      border-radius: var(--radius-sm);
-      transition: color 0.2s, background 0.2s;
-    }
-    .btn-header:hover { color: var(--text); background: var(--bg-card); }
-
-    .home-center {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      max-width: 420px;
-      gap: 0;
-      margin: auto 0;
-    }
-
-    .brand-title {
-      font-family: 'DM Sans', system-ui, sans-serif;
-      font-size: clamp(20px, 5.5vw, 32px);
-      font-weight: 500;
-      color: var(--text);
-      letter-spacing: 0.28em;
-      margin-right: -0.28em;
-      text-transform: uppercase;
-      line-height: 1.1;
-      margin-bottom: 8px;
-      text-align: center;
-    }
-
-    .brand-subtitle {
-      font-size: clamp(12px, 3.5vw, 13.5px);
-      font-weight: 400;
-      color: var(--lime);
-      letter-spacing: 0.01em;
-      margin-bottom: clamp(24px, 5vh, 40px);
-      text-align: center;
-    }
-
-    /* Config block */
-    .config-block {
-      width: 100%;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      margin-bottom: 20px;
-    }
-
-    .config-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 20px;
-      gap: 12px;
-    }
-
-    /* Borders between direct children only */
-    .config-block > .config-row + .config-row,
-    .config-block > .reveal + .config-row {
-      border-top: 1px solid var(--border);
-    }
-
-    /* Revealed rows: subtle indent + tinted background */
-    .reveal .config-row {
-      padding-left: 32px;
-      background: rgba(255,255,255,0.015);
-    }
-
-    .config-label {
-      font-size: 15px;
-      font-weight: 400;
-      color: var(--text);
-      line-height: 1.35;
-      flex: 1;
-      min-width: 0;
-    }
-
-    .config-right {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-shrink: 0;
-    }
-
-    /* Number input */
-    .num-input-wrap {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      overflow: hidden;
-    }
-
-    .num-btn {
-      width: 36px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      font-weight: 300;
-      color: var(--text-soft);
-      transition: color 0.15s, background 0.15s;
-    }
-    .num-btn:hover { color: var(--text); background: var(--border); }
-    .num-btn:active { background: var(--bg-card); }
-
-    .num-display {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 15px;
-      font-weight: 400;
-      color: var(--text);
-      min-width: 36px;
-      text-align: center;
-      user-select: none;
-    }
-
-    /* Toggle */
-    .toggle {
-      position: relative;
-      width: 44px;
-      height: 26px;
-      flex-shrink: 0;
-    }
-    .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
-    .toggle-track {
-      position: absolute;
-      inset: 0;
-      background: var(--border);
-      border-radius: 999px;
-      cursor: pointer;
-      transition: background 0.25s;
-    }
-    .toggle input:checked + .toggle-track { background: var(--lime); }
-    .toggle-thumb {
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #fff;
-      top: 3px;
-      left: 3px;
-      transition: transform 0.25s cubic-bezier(.22,1,.36,1), background 0.25s;
-      pointer-events: none;
-    }
-    .toggle input:checked ~ .toggle-thumb { transform: translateX(18px); }
-
-    /* Reveal animation */
-    .reveal {
-      max-height: 0;
-      overflow: hidden;
-      opacity: 0;
-      transform: translateY(-4px);
-      border-top: 1px solid transparent;
-      transition:
-        max-height 720ms cubic-bezier(.22, 1, .36, 1),
-        opacity 520ms ease,
-        transform 720ms cubic-bezier(.22, 1, .36, 1),
-        border-color 720ms ease;
-    }
-    .reveal.is-open {
-      max-height: 120px;
-      opacity: 1;
-      transform: translateY(0);
-      border-top-color: var(--border);
-    }
-
-    /* Start button */
-    .btn-start {
-      width: 100%;
-      padding: 18px 24px;
-      background: var(--lime);
-      color: #0d0f12;
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      border-radius: 100px;
-      transition: opacity 0.2s, transform 0.15s;
-    }
-    .btn-start:hover { opacity: 0.9; }
-    .btn-start:active { transform: scale(0.98); }
-
-    /* =====================================================
-       COUNTDOWN SCREEN
-    ===================================================== */
-    #screen-countdown {
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg);
-      position: fixed;
-      inset: 0;
-      z-index: 100;
-    }
-
-    .countdown-number {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: clamp(120px, 30vw, 220px);
-      font-weight: 300;
-      color: var(--text);
-      line-height: 1;
-      opacity: 1;
-      transition: opacity 0.3s;
-      transform-origin: center;
-    }
-    .countdown-number.pulse {
-      animation: countPulse 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-    @keyframes countPulse {
-      0% {
-        transform: scale(1.12);
-        opacity: 0.65;
-      }
-      100% {
-        transform: scale(1);
-        opacity: 1;
-      }
-    }
-
-    .countdown-hint {
-      position: absolute;
-      bottom: calc(var(--safe-b) + 48px);
-      font-size: 13px;
-      color: var(--text-muted);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    /* =====================================================
-       IMMERSIVE FOCUS SCREEN
-    ===================================================== */
-    #screen-focus {
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg);
-      position: fixed;
-      inset: 0;
-      z-index: 100;
-      cursor: pointer;
-      user-select: none;
-      padding:
-        calc(var(--safe-t) + 20px)
-        calc(var(--safe-r) + 24px)
-        calc(var(--safe-b) + 20px)
-        calc(var(--safe-l) + 24px);
-    }
-
-    .focus-state-label {
-      font-size: clamp(13px, 3.2vw, 22px);
-      font-weight: 500;
-      letter-spacing: 0.38em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 32px;
-      transition: opacity 0.4s, color 0.4s;
-      white-space: nowrap;
-    }
-    .focus-state-label .lbl-status { color: var(--lime); }
-    .focus-state-label.paused { color: var(--text-muted); }
-    .focus-state-label.paused .lbl-status { color: var(--text-muted); }
-    .focus-state-label.interval { color: var(--text-muted); }
-    .focus-state-label.interval .lbl-status { color: #7eb8f7; }
-    .focus-state-label.presence .lbl-status { color: var(--lime); }
-
-    .focus-timer {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: clamp(72px, 20vw, 140px);
-      font-weight: 300;
-      color: var(--text);
-      letter-spacing: -0.02em;
-      line-height: 1;
-      transition: color 0.4s;
-    }
-    .focus-timer.paused { color: var(--text-muted); }
-
-    /* Controls - hidden by default, shown on tap */
-    .focus-controls {
-      position: absolute;
-      bottom: calc(var(--safe-b) + 48px);
-      display: flex;
-      align-items: center;
-      gap: 48px;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: opacity 0.35s ease, transform 0.35s cubic-bezier(.22,1,.36,1);
-      pointer-events: none;
-    }
-    .focus-controls.visible {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: all;
-    }
-
-    .focus-ctrl-btn {
-      font-size: 12px;
-      font-weight: 500;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--text-soft);
-      padding: 12px 8px;
-      min-width: 80px;
-      text-align: center;
-      transition: color 0.2s;
-    }
-    .focus-ctrl-btn:hover { color: var(--text); }
-    .focus-ctrl-btn.resume { color: var(--lime); }
-    .focus-ctrl-btn.resume:hover { color: var(--lime-dim); }
-    .focus-ctrl-btn.end { color: var(--text-muted); }
-
-    /* Presence check overlay */
-    .presence-overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.4s;
-      gap: 32px;
-    }
-    .presence-overlay.visible {
-      opacity: 1;
-      pointer-events: all;
-    }
-
-    .presence-question {
-      font-size: clamp(20px, 5vw, 28px);
-      font-weight: 400;
-      color: var(--text);
-      text-align: center;
-    }
-
-    .presence-countdown {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      color: var(--text-muted);
-      letter-spacing: 0.06em;
-    }
-
-    .btn-presence {
-      background: var(--lime);
-      color: #0d0f12;
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      padding: 16px 40px;
-      border-radius: 100px;
-      transition: opacity 0.2s, transform 0.15s;
-    }
-    .btn-presence:hover { opacity: 0.9; }
-    .btn-presence:active { transform: scale(0.98); }
-
-    /* Done overlay */
-    .done-overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.5s;
-      gap: 12px;
-      padding: 24px;
-      text-align: center;
-    }
-    .done-overlay.visible {
-      opacity: 1;
-      pointer-events: all;
-    }
-
-    .done-label {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--lime);
-      margin-bottom: 16px;
-    }
-
-    .done-time {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: clamp(48px, 14vw, 88px);
-      font-weight: 300;
-      color: var(--text);
-      line-height: 1;
-    }
-
-    .done-desc {
-      font-size: 14px;
-      color: var(--text-muted);
-      margin-top: 8px;
-      margin-bottom: 24px;
-    }
-
-    .done-quote {
-      font-size: 13.5px;
-      font-style: italic;
-      color: var(--text-soft);
-      letter-spacing: 0.02em;
-      max-width: 340px;
-      line-height: 1.5;
-      margin-bottom: 36px;
-    }
-
-    .btn-done-back {
-      font-size: 13px;
-      font-weight: 500;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-soft);
-      padding: 14px 32px;
-      border: 1px solid var(--border);
-      border-radius: 100px;
-      transition: color 0.2s, border-color 0.2s;
-    }
-    .btn-done-back:hover { color: var(--text); border-color: var(--text-soft); }
-
-    /* =====================================================
-       AUTH MODAL
-    ===================================================== */
-    .modal-backdrop {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.7);
-      z-index: 200;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      padding: 24px;
-    }
-    .modal-backdrop.open { display: flex; }
-
-    .modal {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 36px 30px 32px;
-      width: 100%;
-      max-width: 380px;
-      position: relative;
-      max-height: calc(100dvh - var(--safe-t) - var(--safe-b) - 24px);
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .modal-close {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-muted);
-      border-radius: var(--radius-sm);
-      transition: color 0.2s, background 0.2s;
-      font-size: 20px;
-      line-height: 1;
-    }
-    .modal-close:hover { color: var(--text); background: var(--border); }
-
-    .modal-brand {
-      font-size: 22px;
-      font-weight: 500;
-      color: var(--lime);
-      margin-bottom: 32px;
-    }
-
-    .form-field {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-bottom: 16px;
-    }
-
-    .form-label {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text-muted);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-    .form-input {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--text);
-      font-size: 15px;
-      font-weight: 400;
-      padding: 12px 14px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .form-input:focus { border-color: var(--lime); }
-    .form-input::placeholder { color: var(--text-muted); }
-
-    .form-error {
-      font-size: 13px;
-      color: var(--danger);
-      min-height: 18px;
-      margin-top: -8px;
-      margin-bottom: 8px;
-    }
-
-    .btn-auth {
-      width: 100%;
-      padding: 14px 24px;
-      background: var(--lime);
-      color: #0d0f12;
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      border-radius: 100px;
-      margin-top: 8px;
-      transition: opacity 0.2s;
-    }
-    .btn-auth:hover { opacity: 0.9; }
-    .btn-auth:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .auth-toggle {
-      text-align: center;
-      margin-top: 20px;
-    }
-    .auth-toggle-text {
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-    .auth-toggle-link {
-      font-size: 13px;
-      color: var(--text-soft);
-      text-decoration: underline;
-      text-decoration-color: var(--border);
-      background: none;
-      border: none;
-      cursor: pointer;
-      margin-left: 4px;
-      transition: color 0.2s;
-    }
-    .auth-toggle-link:hover { color: var(--text); }
-
-    /* =====================================================
-       PROFILE MODAL
-    ===================================================== */
-    .profile-section {
-      margin-bottom: 24px;
-    }
-    .profile-name {
-      font-size: 20px;
-      font-weight: 500;
-      color: var(--text);
-      margin-bottom: 4px;
-    }
-    .profile-email {
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    .profile-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .profile-row:last-child { border-bottom: none; }
-    .profile-row-label {
-      font-size: 15px;
-      color: var(--text);
-    }
-
-    .btn-logout {
-      width: 100%;
-      padding: 14px 24px;
-      background: transparent;
-      color: var(--danger);
-      font-size: 13px;
-      font-weight: 500;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      border: 1px solid rgba(224,92,92,0.25);
-      border-radius: 100px;
-      margin-top: 20px;
-      transition: background 0.2s, border-color 0.2s;
-    }
-    .btn-logout:hover { background: rgba(224,92,92,0.08); border-color: var(--danger); }
-
-    /* =====================================================
-       STATS PANEL
-    ===================================================== */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    .stat-card {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 16px;
-    }
-
-    .stat-value {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 20px;
-      font-weight: 400;
-      color: var(--text);
-      margin-bottom: 4px;
-    }
-
-    .stat-label {
-      font-size: 11px;
-      color: var(--text-muted);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-    /* =====================================================
-       ACCESSIBILITY & MOTION
-    ===================================================== */
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: 1ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 1ms !important;
-        scroll-behavior: auto !important;
-      }
-    }
-
-    /* Focus visible */
-    :focus-visible {
-      outline: 2px solid var(--lime);
-      outline-offset: 2px;
-    }
-
-    /* =====================================================
-       RESPONSIVE: MOBILE COMPACT (PORTRAIT <= 360px)
-    ===================================================== */
-    @media (max-width: 360px) {
-      #screen-home {
-        padding-left: calc(var(--safe-l) + 14px);
-        padding-right: calc(var(--safe-r) + 14px);
-      }
-      .config-row {
-        padding: 13px 14px;
-        gap: 8px;
-      }
-      .reveal .config-row {
-        padding-left: 20px;
-      }
-      .config-label {
-        font-size: 13.5px;
-      }
-      .num-btn {
-        width: 32px;
-        height: 32px;
-        font-size: 16px;
-      }
-      .num-display {
-        min-width: 30px;
-        font-size: 14px;
-      }
-      .modal {
-        padding: 28px 20px;
-      }
-    }
-
-    /* =====================================================
-       RESPONSIVE: SHORT PORTRAIT (HEIGHT <= 640px)
-    ===================================================== */
-    @media (max-height: 640px) and (orientation: portrait) {
-      .brand-subtitle {
-        margin-bottom: 20px;
-      }
-      .config-row {
-        padding: 13px 18px;
-      }
-      .btn-start {
-        padding: 15px 20px;
-      }
-    }
-
-    /* =====================================================
-       RESPONSIVE: TABLET / DESKTOP (PORTRAIT / TALL SCREENS)
-    ===================================================== */
-    @media (min-width: 480px) and (min-height: 561px) {
-      #screen-home {
-        padding-top: calc(var(--safe-t) + 28px);
-        padding-bottom: calc(var(--safe-b) + 32px);
-      }
-      .home-header {
-        margin-bottom: 12px;
-      }
-    }
-
-    @media (min-width: 768px) and (min-height: 561px) {
-      .focus-timer {
-        font-size: clamp(100px, 18vw, 180px);
-      }
-    }
-
-    /* =====================================================
-       RESPONSIVE: MOBILE HORIZONTAL / LANDSCAPE (HEIGHT <= 560px)
-       Adapts dynamically to the extra horizontal width while
-       preserving the core structure and optimal ergonomics.
-    ===================================================== */
-    @media (orientation: landscape) and (max-height: 560px) {
-      /* Home Screen - balanced two-column distribution */
-      #screen-home {
-        padding:
-          calc(var(--safe-t) + 10px)
-          calc(var(--safe-r) + 24px)
-          calc(var(--safe-b) + 12px)
-          calc(var(--safe-l) + 24px);
-        justify-content: center;
-      }
-
-      .home-header {
-        max-width: 820px;
-        padding-bottom: 4px;
-      }
-
-      .btn-header {
-        padding: 6px 12px;
-        font-size: 12px;
-      }
-
-      .home-center {
-        max-width: 820px;
-        display: grid;
-        grid-template-columns: 1fr 1.15fr;
-        grid-template-areas:
-          "brand   config"
-          "sub     config"
-          "start   config";
-        grid-template-rows: auto auto auto;
-        column-gap: 36px;
-        row-gap: 0;
-        align-items: center;
-        align-content: center;
-        margin: auto 0;
-      }
-
-      .brand-title {
-        grid-area: brand;
-        text-align: left;
-        font-size: clamp(22px, 3.8vw, 28px);
-        letter-spacing: 0.28em;
-        margin-right: 0;
-        margin-bottom: 4px;
-      }
-
-      .brand-subtitle {
-        grid-area: sub;
-        text-align: left;
-        font-size: 12.5px;
-        margin-bottom: 18px;
-      }
-
-      .btn-start {
-        grid-area: start;
-        width: 100%;
-        padding: 14px 20px;
-        font-size: 12px;
-        letter-spacing: 0.1em;
-      }
-
-      .config-block {
-        grid-area: config;
-        margin-bottom: 0;
-        max-height: calc(100dvh - var(--safe-t) - var(--safe-b) - 64px);
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-      }
-
-      .config-row {
-        padding: 10px 16px;
-        gap: 10px;
-      }
-
-      .reveal .config-row {
-        padding-left: 24px;
-      }
-
-      .config-label {
-        font-size: 13.5px;
-      }
-
-      .num-btn {
-        width: 32px;
-        height: 32px;
-        font-size: 16px;
-      }
-
-      .num-display {
-        min-width: 32px;
-        font-size: 14px;
-      }
-
-      .toggle {
-        width: 40px;
-        height: 24px;
-      }
-
-      .toggle-thumb {
-        width: 18px;
-        height: 18px;
-      }
-
-      .toggle input:checked ~ .toggle-thumb {
-        transform: translateX(16px);
-      }
-
-      /* Countdown Screen */
-      .countdown-number {
-        font-size: clamp(80px, 36vh, 150px);
-      }
-
-      .countdown-hint {
-        bottom: calc(var(--safe-b) + 14px);
-        font-size: 12px;
-      }
-
-      /* Immersive Focus Screen - Minimalist desk clock experience */
-      #screen-focus {
-        padding:
-          calc(var(--safe-t) + 10px)
-          calc(var(--safe-r) + 24px)
-          calc(var(--safe-b) + 10px)
-          calc(var(--safe-l) + 24px);
-      }
-
-      .focus-state-label {
-        font-size: clamp(12px, 3vh, 15px);
-        margin-bottom: 8px;
-        letter-spacing: 0.32em;
-      }
-
-      .focus-timer {
-        font-size: clamp(68px, 28vh, 124px);
-      }
-
-      .focus-controls {
-        bottom: calc(var(--safe-b) + 14px);
-        gap: 40px;
-      }
-
-      .focus-ctrl-btn {
-        font-size: 11px;
-        padding: 8px 16px;
-        min-width: 72px;
-      }
-
-      /* Presence Overlay */
-      .presence-overlay {
-        gap: 14px;
-        padding: 16px;
-      }
-
-      .presence-question {
-        font-size: clamp(18px, 4.5vh, 24px);
-      }
-
-      .presence-countdown {
-        font-size: 12px;
-      }
-
-      .btn-presence {
-        padding: 12px 32px;
-        font-size: 12px;
-      }
-
-      /* Done Overlay */
-      .done-overlay {
-        gap: 6px;
-        padding: calc(var(--safe-t) + 8px) calc(var(--safe-r) + 20px) calc(var(--safe-b) + 8px) calc(var(--safe-l) + 20px);
-        overflow-y: auto;
-        justify-content: center;
-      }
-
-      .done-label {
-        font-size: 10px;
-        margin-bottom: 2px;
-        letter-spacing: 0.14em;
-      }
-
-      .done-time {
-        font-size: clamp(38px, 14vh, 58px);
-      }
-
-      .done-desc {
-        font-size: 12px;
-        margin-top: 2px;
-        margin-bottom: 6px;
-      }
-
-      .done-quote {
-        font-size: 12px;
-        margin-bottom: 12px;
-        max-width: 520px;
-        line-height: 1.4;
-      }
-
-      .btn-done-back {
-        font-size: 11px;
-        padding: 9px 24px;
-      }
-
-      /* Modals in Horizontal / Landscape */
-      .modal-backdrop {
-        padding: 12px;
-      }
-
-      .modal {
-        padding: 22px 24px 20px;
-        max-width: 440px;
-        border-radius: 16px;
-      }
-
-      .modal-close {
-        top: 10px;
-        right: 10px;
-      }
-
-      .modal-brand {
-        font-size: 18px;
-        margin-bottom: 12px;
-      }
-
-      .form-field {
-        margin-bottom: 8px;
-        gap: 4px;
-      }
-
-      .form-input {
-        padding: 9px 12px;
-        font-size: 14px;
-      }
-
-      .form-error {
-        margin-top: -4px;
-        margin-bottom: 4px;
-        font-size: 12px;
-      }
-
-      .btn-auth {
-        padding: 11px 20px;
-        font-size: 12px;
-        margin-top: 4px;
-      }
-
-      .auth-toggle {
-        margin-top: 10px;
-      }
-
-      /* Profile Modal in Horizontal / Landscape */
-      #modal-profile .modal {
-        max-width: 580px;
-      }
-
-      #modal-profile .profile-section {
-        margin-bottom: 12px;
-        display: flex;
-        align-items: baseline;
-        gap: 12px;
-      }
-
-      #modal-profile .profile-name {
-        font-size: 17px;
-        margin-bottom: 0;
-      }
-
-      #modal-profile .stats-grid {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 8px;
-        margin-bottom: 12px;
-      }
-
-      #modal-profile .stat-card {
-        padding: 10px 12px;
-      }
-
-      #modal-profile .stat-value {
-        font-size: 16px;
-        margin-bottom: 2px;
-      }
-
-      #modal-profile .stat-label {
-        font-size: 10px;
-      }
-
-      #modal-profile .profile-row {
-        padding: 8px 0;
-      }
-
-      #modal-profile .btn-logout {
-        margin-top: 10px;
-        padding: 9px 20px;
-        font-size: 12px;
-      }
-    }
-
-    /* =====================================================
-       MISC UTILITIES
-    ===================================================== */
-    .sr-only {
-      position: absolute; width: 1px; height: 1px;
-      padding: 0; margin: -1px; overflow: hidden;
-      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
-    }
-
-    .text-lime { color: var(--lime); }
-
-    /* Pulse for presence check */
-    @keyframes pulse-ring {
-      0%   { box-shadow: 0 0 0 0 rgba(184,245,58,0.4); }
-      70%  { box-shadow: 0 0 0 16px rgba(184,245,58,0); }
-      100% { box-shadow: 0 0 0 0 rgba(184,245,58,0); }
-    }
-    .btn-presence { animation: pulse-ring 2s ease-out infinite; }
-
-    /* Blink colon when paused */
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.15; }
-    }
-    .timer-colon.blinking { animation: blink 1.2s ease-in-out infinite; }
-
-    /* Number change animation */
-    @keyframes flip-up {
-      from { transform: translateY(8px); opacity: 0; }
-      to   { transform: translateY(0);   opacity: 1; }
-    }
-    .flip { animation: flip-up 0.2s ease-out; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hiperfoco — presença no trabalho</title>
+<meta name="theme-color" content="#0d0f13">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Hiperfoco">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0BAMAAADP4xsBAAAAMFBMVEXV/2XL+WHI9WDH9GDF8V+44lp4kj8sNCAaHhgQExQOERQOEBMNERMNDxMJChEBAA5u1ieJAAACBklEQVR42u3aMUvDQBQH8EusOtlERFw0DcVNKBWhi6BF3BSdhIqTk+J3cBCF4uqmix9ARAcHBwdbrCAoglRwUIk1i0MxQQeHpHW4GB1eqKeJovyz9Li8/HK55K48eNINi+qQGWjQoEGDBg0aNGjQoEGD/hk6FnTi2uC/o4GXnlp8cCMB56WAvNFp0XljayDo3hmVMcZYfTMrNurjl3N+6/wOfaWbyXujXrsXot3c9K73WEvPZET5aoPTza0TusiEFAt7ad4qrCbSREAtPmfyCXFLT6YA7baNqd5r1FLDFO30xDVPaJvUsp//+OrKhSczc32cirhc1N5iVUsV+K5jm8r7bcgIu+pPsP0wJEDfWQJLwz6vYw8BDRo0aNCgQYMGDfq3UtIPx21kdIxKSnsLYdBbxheH1Cigpm2T/VXj+6OuHdAJpxrChCTp1NIKgX7EagT9D3e+9uiWzG1kC10ejWp7kisr5KZaZsb3J2TKJjrtchiv0TkjOs1w/huTX6OxGkGDBg0aNGjQoEGDjppOqAKE0i8J0M7se/5CX6d0+FmS0lUUoCU7pXvN7rk9KqJvufIWa6mWQC7TtJ/yyyEm6CE9jfvlECemSJo0mLN2eWt+hizikEuZQz7Y5oUjnX70gKqWYsPSk85GpScRFswE0RGW+WChgwYNGjRo0KBBgwYNGvQfol8B9+iKLFIrA0IAAAAASUVORK5CYII=">
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0BAMAAADP4xsBAAAAMFBMVEXV/2XL+WHI9WDH9GDF8V+44lp4kj8sNCAaHhgQExQOERQOEBMNERMNDxMJChEBAA5u1ieJAAACBklEQVR42u3aMUvDQBQH8EusOtlERFw0DcVNKBWhi6BF3BSdhIqTk+J3cBCF4uqmix9ARAcHBwdbrCAoglRwUIk1i0MxQQeHpHW4GB1eqKeJovyz9Li8/HK55K48eNINi+qQGWjQoEGDBg0aNGjQoEGD/hk6FnTi2uC/o4GXnlp8cCMB56WAvNFp0XljayDo3hmVMcZYfTMrNurjl3N+6/wOfaWbyXujXrsXot3c9K73WEvPZET5aoPTza0TusiEFAt7ad4qrCbSREAtPmfyCXFLT6YA7baNqd5r1FLDFO30xDVPaJvUsp//+OrKhSczc32cirhc1N5iVUsV+K5jm8r7bcgIu+pPsP0wJEDfWQJLwz6vYw8BDRo0aNCgQYMGDfq3UtIPx21kdIxKSnsLYdBbxheH1Cigpm2T/VXj+6OuHdAJpxrChCTp1NIKgX7EagT9D3e+9uiWzG1kC10ejWp7kisr5KZaZsb3J2TKJjrtchiv0TkjOs1w/huTX6OxGkGDBg0aNGjQoEGDjppOqAKE0i8J0M7se/5CX6d0+FmS0lUUoCU7pXvN7rk9KqJvufIWa6mWQC7TtJ/yyyEm6CE9jfvlECemSJo0mLN2eWt+hizikEuZQz7Y5oUjnX70gKqWYsPSk85GpScRFswE0RGW+WChgwYNGjRo0KBBgwYNGvQfol8B9+iKLFIrA0IAAAAASUVORK5CYII=">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Inter:wght@300&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d0f13;--card:#15171b;--line:#22252b;--fg:#e8e6df;--mut:#5b6070;--acc:#c8f560;--ink:#0d0f13;--trk:#1f2227;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:'DM Sans',system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+#home{min-height:100%;display:flex;flex-direction:column;justify-content:center;padding:24px 0}
+main{width:min(100%,520px);margin:0 auto;padding:0 clamp(20px,6vw,32px)}
+.brand{text-align:center;font-weight:300;font-size:clamp(28px,8.4vw,46px);letter-spacing:.3em;margin-right:-.3em;text-transform:uppercase}
+.today{text-align:center;color:var(--acc);font-size:clamp(16px,4.2vw,19px);margin:10px 0 clamp(36px,9vh,64px)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:28px;overflow:hidden}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:76px;padding:0 clamp(18px,5vw,30px);border-top:1px solid var(--line);font-size:clamp(16px,4.3vw,19px)}
+.row.first{border-top:0}
+.reveal{max-height:0;overflow:hidden;opacity:0;transform:translateY(-6px);border-top:1px solid transparent;transition:max-height 720ms cubic-bezier(.22,1,.36,1),opacity 520ms ease,transform 720ms cubic-bezier(.22,1,.36,1),border-color 720ms ease}
+.reveal.is-open{max-height:100px;opacity:1;transform:none;border-top-color:var(--line)}
+.reveal .row{border-top:0}
+.step{display:flex;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:18px;height:56px;flex:none}
+.step:focus-within{border-color:var(--mut)}
+.step button{background:none;border:0;color:var(--mut);font-size:24px;width:48px;height:100%;touch-action:manipulation}
+.step input{width:3.4ch;text-align:center;background:none;border:0;outline:0;color:var(--fg);font:400 22px 'JetBrains Mono',monospace;padding:0;-moz-appearance:textfield}
+.step input::-webkit-outer-spin-button,.step input::-webkit-inner-spin-button{-webkit-appearance:none}
+.sw{position:relative;width:66px;height:40px;border-radius:20px;border:0;background:var(--trk);flex:none;transition:background 360ms ease}
+.sw::after{content:"";position:absolute;top:5px;left:5px;width:30px;height:30px;border-radius:50%;background:#fff;transition:transform 360ms cubic-bezier(.22,1,.36,1)}
+.sw[aria-checked=true]{background:var(--acc)}
+.sw[aria-checked=true]::after{transform:translateX(26px)}
+.go{display:block;width:100%;height:clamp(64px,10vh,78px);margin-top:clamp(20px,4vh,30px);border:0;border-radius:999px;background:var(--acc);color:var(--ink);font-weight:500;font-size:clamp(14px,3.8vw,18px);letter-spacing:.2em;text-transform:uppercase}
+#imm{position:fixed;inset:0;width:100vw;height:100dvh;min-height:100svh;z-index:5;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:hidden;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+#imm.on{display:flex}
+.lab{margin:0 0 clamp(12px,3vh,28px);font-size:clamp(12px,3.4vw,17px);letter-spacing:.3em;margin-right:-.3em;color:var(--mut);text-transform:uppercase}
+.lab b{font-weight:400;color:var(--acc)}
+.time,.big{font-family:'Inter','DM Sans',system-ui,sans-serif}
+.time{font-weight:300;font-size:clamp(64px,min(26vw,34vh),300px);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.01em;white-space:nowrap}
+.time.lg{font-size:clamp(40px,min(14vw,24vh),200px)}
+@media (orientation:landscape){.time{font-size:min(29vw,60vh)}.time.lg{font-size:min(15vw,40vh)}}
+.co{font-style:normal}
+.paused .co{animation:bl 1.4s ease-in-out infinite}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.12}}
+.time.sm{font-size:clamp(48px,min(16vw,22vh),160px)}
+.big{font-weight:300;font-size:clamp(96px,min(40vw,45vh),360px);line-height:1;font-variant-numeric:tabular-nums}
+.hint{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 32px);margin:0;color:var(--mut);font-size:14px;padding:0 24px}
+.q{margin:0;font-size:clamp(22px,6vw,34px);font-weight:300}
+.cnt{font:400 clamp(40px,12vw,64px) 'JetBrains Mono',monospace;color:var(--mut);margin:24px 0 8px}
+.ctl{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 28px);display:flex;justify-content:center;align-items:center;gap:20px;flex-wrap:wrap;opacity:0;visibility:hidden;pointer-events:none;transition:opacity 420ms ease,visibility 0s linear 420ms}
+#imm.show .ctl,.ctl.keep{opacity:1;visibility:visible;pointer-events:auto;transition:opacity 420ms ease,visibility 0s}
+.ctl button:not(.pill){background:none;border:0;color:var(--mut);opacity:.8;font-size:15px;min-height:48px;padding:0 16px}
+.pill{border:0;border-radius:999px;background:var(--acc);color:var(--ink);font-weight:500;font-size:16px;height:56px;padding:0 36px;margin-top:20px}
+.ctl .pill{margin-top:0}
+.sub{color:var(--mut);margin:12px 0 0;font-size:15px;padding:0 24px}
+.duo{display:flex;gap:16px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:28px}
+.duo .pill{margin-top:0}
+.sub.top{position:absolute;top:calc(env(safe-area-inset-top,0px) + 20px);left:0;right:0;margin:0}
+[hidden]{display:none!important}
+#home,#rep{position:relative}
+.nav{position:absolute;top:14px;left:clamp(20px,6vw,32px);display:inline-flex;align-items:center;gap:8px;background:none;border:0;padding:0;min-height:44px;color:var(--mut);font-size:15px;letter-spacing:.03em;transition:color 300ms ease}
+.nav:hover{color:var(--fg)}
+.row.cat{padding:0 clamp(14px,4vw,22px)}
+.seg{display:flex;gap:4px;width:100%;padding:4px;background:var(--bg);border:1px solid var(--line);border-radius:18px}
+.seg button{flex:1;height:44px;border:0;border-radius:14px;background:none;color:var(--mut);font-size:clamp(14px,3.8vw,16px);transition:background 300ms ease,color 300ms ease}
+.seg button[aria-pressed=true]{background:var(--line);color:var(--fg)}
+#rep{min-height:100%;padding-bottom:56px}
+#rep main{padding-top:68px}
+.daynav{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.daynav button{width:48px;height:48px;border:0;background:none;color:var(--mut);font-size:26px}
+.daynav button:disabled{opacity:.25;cursor:default}
+#d-title{font-size:clamp(17px,4.6vw,20px);text-transform:capitalize}
+#rep .card+.card{margin-top:16px}
+.ml{display:block;color:var(--mut);font-size:14px}
+.mv{display:block;margin-top:6px;font:400 clamp(22px,6.4vw,28px) 'JetBrains Mono',monospace}
+.mv.xl{font-size:clamp(36px,11vw,52px);margin-top:8px}
+.mrow,.mc,.dbox{padding:20px clamp(18px,5vw,30px)}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line)}
+.mc+.mc{border-left:1px solid var(--line)}
+.ms{display:block;margin-top:4px;color:var(--mut);font-size:13px}
+.bar{display:flex;gap:2px;height:10px;margin:16px 0 8px;border-radius:5px;overflow:hidden;background:var(--bg)}
+.bar i{display:block;height:100%}
+.lst{list-style:none;margin:6px 0 0;padding:0}
+.lst li{display:flex;align-items:center;gap:10px;min-height:46px;font-size:15px}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.lst .n{flex:1;min-width:0}
+.lst .t{font:400 14px 'JetBrains Mono',monospace;text-align:right}
+.lst .p{width:42px;text-align:right;color:var(--mut);font-size:13px}
+.blk li{min-height:56px}
+.blk li+li{border-top:1px solid var(--line)}
+.blk .tm{width:46px;color:var(--mut);font:400 14px 'JetBrains Mono',monospace}
+.blk em{display:block;font:normal 12px 'DM Sans',sans-serif;color:var(--mut)}
+.lst .empty{color:var(--mut)}
+.ghost{background:none;border:1px solid var(--line);color:var(--fg);border-radius:999px;height:56px;padding:0 28px;font-size:16px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:1ms!important;animation-iteration-count:1!important;transition-duration:1ms!important;scroll-behavior:auto!important}}
+</style>
 </head>
 <body>
+<div id="home">
+<button type="button" class="nav" id="open-rep" aria-label="Relatório do dia"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M3 11V7M7 11V3M11 11V8"/></svg>Relatório</button>
+<main>
+<div class="brand">Hiperfoco</div>
+<div class="today" id="today">Hoje: 0min de foco</div>
+<div class="card">
+<div class="row first"><label for="v-focus">Duração do foco (min)</label><div class="step" data-k="focus" data-l="duração do foco"></div></div>
+<div class="row"><span id="l-brk">Intervalos</span><button type="button" class="sw" role="switch" aria-checked="false" aria-labelledby="l-brk" data-sw="brk"></button></div>
+<div class="reveal" id="r-brk"><div class="row"><label for="v-brkMin">Duração do intervalo (min)</label><div class="step" data-k="brkMin" data-l="duração do intervalo"></div></div></div>
+<div class="row"><span id="l-chk">Voltar ao foco</span><button type="button" class="sw" role="switch" aria-checked="false" aria-labelledby="l-chk" data-sw="chk"></button></div>
+<div class="reveal" id="r-chk"><div class="row"><label for="v-chkMin">Checagem a cada (min)</label><div class="step" data-k="chkMin" data-l="checagem"></div></div></div>
+<div class="row cat"><div class="seg" role="group" aria-label="Categoria do bloco"><button type="button" aria-pressed="true" aria-label="Vendas" data-cat="v">Vendas</button><button type="button" aria-pressed="false" aria-label="Gestão e desenvolvimento" data-cat="g">Gestão</button><button type="button" aria-pressed="false" aria-label="Atividade livre" data-cat="l">Livre</button></div></div>
+</div>
+<button type="button" class="go" id="go">Iniciar hiperfoco</button>
+</main>
+</div>
+<div id="rep" hidden>
+<button type="button" class="nav" id="rep-back">‹ Voltar</button>
+<main>
+<div class="daynav"><button type="button" id="d-prev" aria-label="Dia anterior">‹</button><span id="d-title" aria-live="polite">Hoje</span><button type="button" id="d-next" aria-label="Próximo dia">›</button></div>
+<div class="card">
+<div class="mrow"><span class="ml">Tempo de foco</span><span class="mv xl" id="m-foco">0min</span></div>
+<div class="mgrid"><div class="mc"><span class="ml">Blocos</span><span class="mv" id="m-blocos">0</span></div><div class="mc"><span class="ml">Média por bloco</span><span class="mv" id="m-media">—</span><span class="ms" id="m-plan"></span></div></div>
+</div>
+<div class="card"><div class="dbox"><span class="ml">Distribuição do tempo</span><div class="bar" id="bar" role="img"></div><ul class="lst" id="dl"></ul></div></div>
+<div class="card"><div class="dbox"><span class="ml">Blocos do dia</span><ul class="lst blk" id="bl"></ul></div></div>
+</main>
+</div>
+<div id="imm" aria-live="off"></div>
+<script>
+(()=>{
+const $=s=>document.querySelector(s);
+const ls={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const cfg=Object.assign({focus:30,brk:false,brkMin:5,chk:false,chkMin:10,cat:'v'},ls.get('hf_cfg',{}));
+const LIM={focus:[1,240],brkMin:[1,60],chkMin:[1,60]};
+const dkey=()=>new Date().toLocaleDateString('sv');
+const fmt=s=>{const m=Math.floor(s/60),h=Math.floor(m/60),r=m%60;return h?(r?h+'h '+r+'min':h+'h'):m+'min'};
+const p2=n=>String(n).padStart(2,'0');
+const clk=ms=>{const t=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return h?h+':'+p2(m)+':'+p2(s):p2(m)+':'+p2(s)};
+const today=()=>(ls.get('hf_days',{})[dkey()]||0);
+const addDay=(sec,rec)=>{const d=ls.get('hf_days',{});d[dkey()]=(d[dkey()]||0)+sec;ls.set('hf_days',d);const a=ls.get('hf_sess',[]);a.push(rec);ls.set('hf_sess',a.slice(-1000))};
 
-  <!-- ===================================================
-       HOME SCREEN
-  =================================================== -->
-  <section id="screen-home" class="screen active" aria-label="Tela inicial">
-    <div class="home-header">
-      <button class="btn-header" id="btn-auth-header" aria-label="Entrar na sua conta">Entrar</button>
-    </div>
+/* configurações */
+const render=()=>{
+  for(const k in LIM){const i=$('#v-'+k);if(i&&document.activeElement!==i)i.value=cfg[k]}
+  document.querySelectorAll('[data-sw]').forEach(b=>{const k=b.dataset.sw,on=!!cfg[k],r=$('#r-'+k);b.setAttribute('aria-checked',on);r.classList.toggle('is-open',on);r.inert=!on});
+  document.querySelectorAll('[data-cat]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cat===cfg.cat));
+  $('#today').textContent='Hoje: '+fmt(today())+' de foco';
+};
+const nudge=(k,d)=>{cfg[k]=Math.min(LIM[k][1],Math.max(LIM[k][0],cfg[k]+d));ls.set('hf_cfg',cfg);render()};
+document.querySelectorAll('.step').forEach(el=>{
+  const k=el.dataset.k,l=el.dataset.l;
+  el.innerHTML='<button type="button" data-d="-1" aria-label="Diminuir '+l+'">\u2212</button><input id="v-'+k+'" inputmode="numeric" autocomplete="off" aria-label="'+l+' em minutos"><button type="button" data-d="1" aria-label="Aumentar '+l+'">+</button>';
+  el.querySelector('input').addEventListener('change',e=>{const v=parseInt(e.target.value,10);if(!isNaN(v)){cfg[k]=Math.min(LIM[k][1],Math.max(LIM[k][0],v));ls.set('hf_cfg',cfg)}e.target.value=cfg[k];render()});
+});
+let hold,rep,skip=false;
+const stop=()=>{clearTimeout(hold);clearInterval(rep)};
+document.addEventListener('pointerdown',e=>{const b=e.target.closest('.step button');if(!b)return;const k=b.parentElement.dataset.k,d=+b.dataset.d;skip=true;setTimeout(()=>skip=false,700);nudge(k,d);hold=setTimeout(()=>{rep=setInterval(()=>nudge(k,d),130)},450)});
+['pointerup','pointercancel'].forEach(t=>document.addEventListener(t,stop));
+addEventListener('blur',stop);
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.step button');
+  if(b){if(skip){skip=false;return}nudge(b.parentElement.dataset.k,+b.dataset.d);return}
+  const ct=e.target.closest('[data-cat]');
+  if(ct){cfg.cat=ct.dataset.cat;ls.set('hf_cfg',cfg);render();return}
+  const s=e.target.closest('[data-sw]');
+  if(s){cfg[s.dataset.sw]=!cfg[s.dataset.sw];ls.set('hf_cfg',cfg);render()}
+});
 
-    <div class="home-center">
-      <h1 class="brand-title">Hiperfoco</h1>
-      <p class="brand-subtitle" id="today-summary">Hoje: 0min de foco</p>
+/* tela cheia e tela ligada */
+const rfs=()=>{try{const e=document.documentElement,f=e.requestFullscreen||e.webkitRequestFullscreen;const p=f&&f.call(e,{navigationUI:'hide'});p&&p.catch&&p.catch(()=>{})}catch(e){}};
+const xfs=()=>{try{if(document.fullscreenElement||document.webkitFullscreenElement){const p=(document.exitFullscreen||document.webkitExitFullscreen).call(document);p&&p.catch&&p.catch(()=>{})}}catch(e){}};
+let wl=null;
+const lock=async()=>{try{if('wakeLock' in navigator&&!wl){const l=await navigator.wakeLock.request('screen');wl=l;l.addEventListener('release',()=>{if(wl===l)wl=null})}}catch(e){}};
+const unlock=()=>{try{wl&&wl.release()}catch(e){}wl=null};
 
-      <div class="config-block" role="group" aria-label="Configurações do bloco de foco">
-        <!-- Duration -->
-        <div class="config-row">
-          <label class="config-label" for="focus-duration-display">Duração do foco (min)</label>
-          <div class="config-right">
-            <div class="num-input-wrap" role="group" aria-label="Duração do foco em minutos">
-              <button class="num-btn" id="duration-minus" aria-label="Diminuir duração">−</button>
-              <span class="num-display" id="focus-duration-display" aria-live="polite" aria-atomic="true">30</span>
-              <button class="num-btn" id="duration-plus" aria-label="Aumentar duração">+</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Intervals toggle -->
-        <div class="config-row">
-          <span class="config-label">Intervalos</span>
-          <div class="config-right">
-            <label class="toggle" aria-label="Ativar intervalos">
-              <input type="checkbox" id="toggle-intervals" role="switch" aria-checked="false" />
-              <span class="toggle-track"></span>
-              <span class="toggle-thumb"></span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Interval duration (revealed) -->
-        <div class="reveal" id="reveal-interval">
-          <div class="config-row">
-            <label class="config-label" for="interval-duration-display">Duração do intervalo (min)</label>
-            <div class="config-right">
-              <div class="num-input-wrap" role="group" aria-label="Duração do intervalo em minutos">
-                <button class="num-btn" id="interval-minus" aria-label="Diminuir intervalo">−</button>
-                <span class="num-display" id="interval-duration-display" aria-live="polite" aria-atomic="true">5</span>
-                <button class="num-btn" id="interval-plus" aria-label="Aumentar intervalo">+</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Presence check toggle -->
-        <div class="config-row">
-          <span class="config-label">Voltar ao foco</span>
-          <div class="config-right">
-            <label class="toggle" aria-label="Ativar confirmação de presença">
-              <input type="checkbox" id="toggle-presence" role="switch" aria-checked="false" />
-              <span class="toggle-track"></span>
-              <span class="toggle-thumb"></span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Presence check interval (revealed) -->
-        <div class="reveal" id="reveal-presence">
-          <div class="config-row">
-            <label class="config-label" for="presence-interval-display">Checagem a cada (min)</label>
-            <div class="config-right">
-              <div class="num-input-wrap" role="group" aria-label="Periodicidade da checagem em minutos">
-                <button class="num-btn" id="presence-minus" aria-label="Diminuir periodicidade">−</button>
-                <span class="num-display" id="presence-interval-display" aria-live="polite" aria-atomic="true">10</span>
-                <button class="num-btn" id="presence-plus" aria-label="Aumentar periodicidade">+</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button class="btn-start" id="btn-start" aria-label="Iniciar bloco de hiperfoco">
-        Iniciar Hiperfoco
-      </button>
-    </div>
-  </section>
-
-  <!-- ===================================================
-       COUNTDOWN SCREEN
-  =================================================== -->
-  <section id="screen-countdown" class="screen" aria-label="Contagem regressiva" aria-live="polite">
-    <div class="countdown-number" id="countdown-number">5</div>
-    <p class="countdown-hint">Toque ou pressione Espaço para cancelar</p>
-  </section>
-
-  <!-- ===================================================
-       FOCUS SCREEN (immersive)
-  =================================================== -->
-  <section id="screen-focus" class="screen" aria-label="Bloco de hiperfoco em andamento">
-
-    <!-- Main state -->
-    <div class="focus-state-label" id="focus-state-label"><span class="lbl-prefix">Hiperfoco&nbsp;</span><span class="lbl-status">Ativado</span></div>
-    <div class="focus-timer" id="focus-timer" aria-live="off">
-      <span id="timer-mm">30</span><span class="timer-colon" id="timer-colon">:</span><span id="timer-ss">00</span>
-    </div>
-
-    <!-- Controls (shown on tap) -->
-    <div class="focus-controls" id="focus-controls" aria-label="Controles do bloco de foco">
-      <button class="focus-ctrl-btn" id="btn-pause" aria-label="Pausar bloco de foco">Pausar</button>
-      <button class="focus-ctrl-btn end" id="btn-end" aria-label="Encerrar bloco de foco">Encerrar</button>
-    </div>
-
-    <!-- Presence check overlay -->
-    <div class="presence-overlay" id="presence-overlay" role="dialog" aria-label="Confirmação de presença" aria-modal="true">
-      <p class="presence-question">Você ainda está aqui?</p>
-      <span class="presence-countdown" id="presence-countdown" aria-live="polite">10s</span>
-      <button class="btn-presence" id="btn-im-here">Estou aqui</button>
-    </div>
-
-    <!-- Done overlay -->
-    <div class="done-overlay" id="done-overlay" role="status" aria-live="polite">
-      <div class="done-label" id="done-label">Presença registrada</div>
-      <div class="done-time" id="done-time-display">30:00</div>
-      <p class="done-desc" id="done-desc">de foco consciente</p>
-      <p class="done-quote" id="done-quote">"Consistência supera intensidade."</p>
-      <button class="btn-done-back" id="btn-done-back">Voltar ao início</button>
-    </div>
-
-  </section>
-
-  <!-- ===================================================
-       AUTH MODAL
-  =================================================== -->
-  <div class="modal-backdrop" id="modal-auth" role="dialog" aria-modal="true" aria-label="Autenticação">
-    <div class="modal">
-      <button class="modal-close" id="btn-close-auth" aria-label="Fechar">×</button>
-      <p class="modal-brand">Seu espaço</p>
-
-      <form id="auth-form" novalidate>
-        <div class="form-field">
-          <label class="form-label" for="auth-email">E-mail</label>
-          <input class="form-input" type="email" id="auth-email" autocomplete="email" placeholder="seu@email.com" required />
-        </div>
-        <div class="form-field">
-          <label class="form-label" for="auth-password">Senha</label>
-          <input class="form-input" type="password" id="auth-password" autocomplete="current-password" placeholder="••••••••" required />
-        </div>
-        <div class="form-error" id="auth-error" role="alert" aria-live="polite"></div>
-        <button class="btn-auth" type="submit" id="btn-auth-submit">Entrar</button>
-      </form>
-
-      <div class="auth-toggle">
-        <span class="auth-toggle-text">Não tem conta?</span>
-        <button class="auth-toggle-link" id="btn-auth-mode-toggle">Criar conta</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===================================================
-       PROFILE MODAL
-  =================================================== -->
-  <div class="modal-backdrop" id="modal-profile" role="dialog" aria-modal="true" aria-label="Perfil">
-    <div class="modal">
-      <button class="modal-close" id="btn-close-profile" aria-label="Fechar">×</button>
-
-      <div class="profile-section">
-        <div class="profile-name" id="profile-name">—</div>
-        <div class="profile-email" id="profile-email">—</div>
-      </div>
-
-      <div class="stats-grid" id="stats-grid">
-        <div class="stat-card">
-          <div class="stat-value" id="stat-today">0min</div>
-          <div class="stat-label">Hoje</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="stat-week">0min</div>
-          <div class="stat-label">Esta semana</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="stat-month">0min</div>
-          <div class="stat-label">Este mês</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="stat-sessions">0</div>
-          <div class="stat-label">Sessões</div>
-        </div>
-      </div>
-
-      <div>
-        <div class="profile-row">
-          <span class="profile-row-label">Modo escuro</span>
-          <label class="toggle" aria-label="Ativar modo escuro">
-            <input type="checkbox" id="toggle-dark-mode" role="switch" aria-checked="true" checked />
-            <span class="toggle-track"></span>
-            <span class="toggle-thumb"></span>
-          </label>
-        </div>
-      </div>
-
-      <button class="btn-logout" id="btn-logout">Sair</button>
-    </div>
-  </div>
-
-  <!-- ===================================================
-       JAVASCRIPT
-  =================================================== -->
-  <script>
-  'use strict';
-
-  // =========================================================
-  // STATE
-  // =========================================================
-  const state = {
-    // config
-    focusDuration: 30,        // minutes
-    intervalDuration: 5,      // minutes
-    presenceInterval: 10,     // minutes
-    intervalsEnabled: false,
-    presenceEnabled: false,
-
-    // session
-    phase: 'idle',            // idle | countdown | focus | interval | paused | presence | done
-    totalSeconds: 0,          // planned
-    remainingSeconds: 0,
-    focusedSeconds: 0,        // actual focus time
-    pausedSeconds: 0,
-    segmentStart: null,       // Date
-    pauseStart: null,
-    countdownValue: 5,
-    presenceCountdown: 10,
-    controlsVisible: false,
-    controlsTimeout: null,
-    presenceTimer: null,
-    presenceCheckDue: 0,      // seconds until next presence check
-    currentIntervalType: 'focus', // focus | interval
-
-    // user
-    user: null,
-
-    // local stats (seconds per day)
-    localStats: {},           // { 'YYYY-MM-DD': seconds }
-
-    // wakeLock
-    wakeLock: null,
-  };
-
-  // =========================================================
-  // PERSISTENCE
-  // =========================================================
-  function loadLocal() {
-    try {
-      const saved = JSON.parse(localStorage.getItem('hiperfoco_cfg') || '{}');
-      if (saved.focusDuration)    state.focusDuration    = saved.focusDuration;
-      if (saved.intervalDuration) state.intervalDuration = saved.intervalDuration;
-      if (saved.presenceInterval) state.presenceInterval = saved.presenceInterval;
-      if (typeof saved.intervalsEnabled === 'boolean') state.intervalsEnabled = saved.intervalsEnabled;
-      if (typeof saved.presenceEnabled  === 'boolean') state.presenceEnabled  = saved.presenceEnabled;
-
-      const stats = JSON.parse(localStorage.getItem('hiperfoco_stats') || '{}');
-      state.localStats = stats;
-    } catch(e) {}
+/* sessão */
+let S=null,tm=null;
+const imm=$('#imm'),now=()=>Date.now();
+const fms=()=>S.acc+(S.st==='focus'?now()-S.seg:0);
+const TPL={
+  prep:()=>'<div class="big" id="t"></div><p class="hint">Toque ou pressione Espaço para cancelar</p>',
+  focus:()=>'<p class="lab">Hiperfoco <b>ativado</b></p><div class="time" id="t"></div><div class="ctl"><button type="button" data-act="pause">Pausar</button><button type="button" data-act="end">Encerrar</button></div>',
+  pause:()=>'<p class="sub top">Ao retomar, o bloco recomeça do início.</p><p class="lab">Hiperfoco <b>pausado</b></p><div class="time paused" id="t"></div><div class="ctl keep"><button type="button" class="pill" data-act="resume">Recomeçar bloco</button><button type="button" data-act="end">Encerrar</button></div>',
+  check:()=>'<p class="q">Você ainda está aqui?</p><div class="cnt" id="t"></div><button type="button" class="pill" data-act="ok">Estou aqui</button>',
+  break:()=>'<p class="lab">Intervalo</p><div class="time" id="t"></div><div class="ctl"><button type="button" data-act="end">Encerrar</button></div>',
+  cfm:()=>'<p class="q">Encerrar o bloco?</p><p class="sub">O tempo focado até aqui fica salvo.</p><div class="duo"><button type="button" class="pill" data-act="keep">Continuar</button><button type="button" class="ghost" data-act="end2">Encerrar</button></div>',
+  done:()=>'<p class="lab">Bloco <b>concluído</b></p><div class="time sm" id="t"></div><p class="hint" style="position:static;margin-top:12px">Tempo de presença</p><button type="button" class="pill" data-act="home">Voltar ao início</button>'
+};
+let ac=null;
+const beep=f=>{try{if(!ac)return;const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.12,t+.04);g.gain.exponentialRampToValueAtTime(.0001,t+.4);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+.45)}catch(e){}};
+const gong=()=>{try{navigator.vibrate&&navigator.vibrate(80)}catch(e){}try{if(!ac)return;const t=ac.currentTime;[196,294,392].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.12/(i+1)+.03,t+.05);g.gain.exponentialRampToValueAtTime(.0001,t+1.6);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+1.7)})}catch(e){}};
+const alert_=(v,tones)=>{try{navigator.vibrate&&navigator.vibrate(v)}catch(e){}tones.forEach((f,i)=>setTimeout(()=>beep(f),i*230))};
+const persist=()=>{if(!S)return;if(!['focus','pause','check'].includes(S.st)){ls.set('hf_run',null);return}ls.set('hf_run',{cat:S.cat,plan:S.plan,acc:Math.min(fms(),S.plan),pz:S.pz+(S.st==='pause'?now()-S.pAt:0),checks:S.checks,t:S.t,at:now()})};
+const record=st=>{
+  if(S.rec)return;S.rec=true;
+  const sec=Math.round(Math.min(fms(),S.plan)/1000),pz=Math.round((S.pz+(S.st==='pause'?now()-S.pAt:0))/1000);
+  if(sec>0)addDay(sec,{s:S.t,f:sec,p:pz,c:S.checks,pl:Math.round(S.plan/1000),cat:S.cat,st});
+};
+const ui=()=>{
+  if(!S)return;
+  if(S.cfm&&S.st!==S.cst)S.cfm=false;
+  const key=S.cfm?'cfm':S.st;
+  if(S.shown!==key){
+    S.shown=key;clearTimeout(S.ht);imm.innerHTML=TPL[key]();imm.classList.remove('show');imm.classList.add('on');
+    if(['prep','focus','check','break'].includes(S.st))lock();else unlock();persist();
   }
-
-  function saveConfig() {
-    localStorage.setItem('hiperfoco_cfg', JSON.stringify({
-      focusDuration:    state.focusDuration,
-      intervalDuration: state.intervalDuration,
-      presenceInterval: state.presenceInterval,
-      intervalsEnabled: state.intervalsEnabled,
-      presenceEnabled:  state.presenceEnabled,
-    }));
+  if(S.st==='focus'&&now()-(S.lp||0)>1000){S.lp=now();persist()}
+  const t=$('#t');if(!t)return;
+  const n=now();let v='';
+  if(S.st==='prep')v=Math.max(1,Math.ceil((S.t0-n)/1000));
+  else if(S.st==='focus'||S.st==='pause')v=clk(S.plan-fms());
+  else if(S.st==='check')v=Math.max(0,Math.ceil((S.dl-n)/1000));
+  else if(S.st==='break')v=clk(S.bEnd-n);
+  else v=fmt(Math.round(S.acc/1000));
+  const h=String(v).replace(/:/g,'<i class="co">:</i>');if(t.dataset.h!==h){t.dataset.h=h;t.innerHTML=h}
+  t.classList.toggle('lg',t.classList.contains('time')&&String(v).length>5);
+};
+const tick=()=>{
+  if(!S)return;const n=now();
+  if(S.st==='prep'){if(n>=S.t0){S.st='focus';S.seg=n;S.acc=0;gong()}}
+  else if(S.st==='focus'){
+    if(fms()>=S.plan)finish();
+    else if(cfg.chk&&n-S.seg>=cfg.chkMin*60000){S.acc+=n-S.seg;S.st='check';S.dl=n+10000;S.checks++;alert_([120],[660])}
   }
-
-  function addLocalStat(seconds) {
-    const key = todayKey();
-    state.localStats[key] = (state.localStats[key] || 0) + seconds;
-    localStorage.setItem('hiperfoco_stats', JSON.stringify(state.localStats));
-  }
-
-  function todayKey() {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  }
-
-  function getStatForPeriod(period) {
-    const now = new Date();
-    let total = 0;
-    if (period === 'today') {
-      total = state.localStats[todayKey()] || 0;
-    } else if (period === 'week') {
-      const dayOfWeek = now.getDay(); // 0=Sun
-      for (let i = 0; i <= dayOfWeek; i++) {
-        const d = new Date(now); d.setDate(now.getDate() - dayOfWeek + i);
-        const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-        total += state.localStats[k] || 0;
-      }
-    } else if (period === 'month') {
-      const prefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-      Object.keys(state.localStats).forEach(k => {
-        if (k.startsWith(prefix)) total += state.localStats[k];
-      });
-    }
-    return total;
-  }
-
-  function formatSeconds(s) {
-    const h = Math.floor(s / 3600);
-    const m = Math.floor((s % 3600) / 60);
-    if (h > 0 && m > 0) return `${h}h ${m}min`;
-    if (h > 0) return `${h}h`;
-    return `${m}min`;
-  }
-
-  function formatTimer(s) {
-    const m = Math.floor(s / 60);
-    const sec = s % 60;
-    return {
-      mm: String(m).padStart(2, '0'),
-      ss: String(sec).padStart(2, '0'),
-    };
-  }
-
-  // =========================================================
-  // DOM REFS
-  // =========================================================
-  const $ = id => document.getElementById(id);
-
-  const screens = {
-    home:      $('screen-home'),
-    countdown: $('screen-countdown'),
-    focus:     $('screen-focus'),
-  };
-
-  const el = {
-    todaySummary:        $('today-summary'),
-    btnAuthHeader:       $('btn-auth-header'),
-    focusDurationDisplay:$('focus-duration-display'),
-    intervalDurationDisplay: $('interval-duration-display'),
-    presenceIntervalDisplay: $('presence-interval-display'),
-    toggleIntervals:     $('toggle-intervals'),
-    togglePresence:      $('toggle-presence'),
-    revealInterval:      $('reveal-interval'),
-    revealPresence:      $('reveal-presence'),
-    btnStart:            $('btn-start'),
-    countdownNumber:     $('countdown-number'),
-    focusStateLabel:     $('focus-state-label'),
-    focusTimer:          $('focus-timer'),
-    timerMm:             $('timer-mm'),
-    timerSs:             $('timer-ss'),
-    timerColon:          $('timer-colon'),
-    focusControls:       $('focus-controls'),
-    btnPause:            $('btn-pause'),
-    btnEnd:              $('btn-end'),
-    presenceOverlay:     $('presence-overlay'),
-    presenceCountdown:   $('presence-countdown'),
-    btnImHere:           $('btn-im-here'),
-    doneOverlay:         $('done-overlay'),
-    doneLabel:           $('done-label'),
-    doneTimeDisplay:     $('done-time-display'),
-    doneDesc:            $('done-desc'),
-    doneQuote:           $('done-quote'),
-    btnDoneBack:         $('btn-done-back'),
-    modalAuth:           $('modal-auth'),
-    btnCloseAuth:        $('btn-close-auth'),
-    authForm:            $('auth-form'),
-    authEmail:           $('auth-email'),
-    authPassword:        $('auth-password'),
-    authError:           $('auth-error'),
-    btnAuthSubmit:       $('btn-auth-submit'),
-    btnAuthModeToggle:   $('btn-auth-mode-toggle'),
-    modalProfile:        $('modal-profile'),
-    btnCloseProfile:     $('btn-close-profile'),
-    profileName:         $('profile-name'),
-    profileEmail:        $('profile-email'),
-    statToday:           $('stat-today'),
-    statWeek:            $('stat-week'),
-    statMonth:           $('stat-month'),
-    statSessions:        $('stat-sessions'),
-    toggleDarkMode:      $('toggle-dark-mode'),
-    btnLogout:           $('btn-logout'),
-  };
-
-  // =========================================================
-  // SCREEN NAVIGATION
-  // =========================================================
-  function showScreen(name) {
-    Object.entries(screens).forEach(([k, el]) => {
-      el.classList.toggle('active', k === name);
-    });
-  }
-
-  // =========================================================
-  // UI SYNC
-  // =========================================================
-  function syncConfigUI() {
-    el.focusDurationDisplay.textContent       = state.focusDuration;
-    el.intervalDurationDisplay.textContent    = state.intervalDuration;
-    el.presenceIntervalDisplay.textContent    = state.presenceInterval;
-    el.toggleIntervals.checked                = state.intervalsEnabled;
-    el.toggleIntervals.setAttribute('aria-checked', state.intervalsEnabled);
-    el.togglePresence.checked                 = state.presenceEnabled;
-    el.togglePresence.setAttribute('aria-checked', state.presenceEnabled);
-    el.revealInterval.classList.toggle('is-open', state.intervalsEnabled);
-    el.revealPresence.classList.toggle('is-open', state.presenceEnabled);
-    updateTodaySummary();
-  }
-
-  function updateTodaySummary() {
-    const secs = getStatForPeriod('today');
-    el.todaySummary.textContent = `Hoje: ${secs < 60 ? '0min' : formatSeconds(secs)} de foco`;
-  }
-
-  function updateTimerDisplay(seconds) {
-    const { mm, ss } = formatTimer(seconds);
-    el.timerMm.textContent = mm;
-    el.timerSs.textContent = ss;
-  }
-
-  // =========================================================
-  // NUMBER INPUTS
-  // =========================================================
-  function setupNumInput(minusId, plusId, displayId, stateKey, min, max, step) {
-    const minus = $(minusId), plus = $(plusId);
-    minus.addEventListener('click', () => {
-      state[stateKey] = Math.max(min, state[stateKey] - step);
-      $(displayId).textContent = state[stateKey];
-      saveConfig();
-    });
-    plus.addEventListener('click', () => {
-      state[stateKey] = Math.min(max, state[stateKey] + step);
-      $(displayId).textContent = state[stateKey];
-      saveConfig();
-    });
-  }
-
-  // =========================================================
-  // AUDIO & HAPTICS ENGINE (Web Audio API)
-  // =========================================================
-  let audioCtx = null;
-  function getAudioContext() {
-    if (!audioCtx) {
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      if (AudioContextClass) audioCtx = new AudioContextClass();
-    }
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-    return audioCtx;
-  }
-
-  function playTick(isStart = false) {
-    try {
-      const ctx = getAudioContext();
-      if (!ctx) return;
-      const now = ctx.currentTime;
-      if (isStart) {
-        // Soft chime / harmonic note when starting focus
-        const osc1 = ctx.createOscillator();
-        const osc2 = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc1.type = 'sine';
-        osc2.type = 'sine';
-        osc1.frequency.setValueAtTime(587.33, now); // D5
-        osc2.frequency.setValueAtTime(880, now);    // A5
-        gain.gain.setValueAtTime(0.12, now);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.9);
-        osc1.connect(gain);
-        osc2.connect(gain);
-        gain.connect(ctx.destination);
-        osc1.start(now);
-        osc2.start(now);
-        osc1.stop(now + 0.9);
-        osc2.stop(now + 0.9);
-      } else {
-        // Minimal acoustic tick for countdown
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(800, now);
-        osc.frequency.exponentialRampToValueAtTime(260, now + 0.035);
-        gain.gain.setValueAtTime(0.14, now);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.04);
-      }
-    } catch(e) {}
-  }
-
-  function playCompletionChime() {
-    try {
-      const ctx = getAudioContext();
-      if (!ctx) return;
-      const now = ctx.currentTime;
-      const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
-      notes.forEach((freq, idx) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        const t = now + idx * 0.12;
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, t);
-        gain.gain.setValueAtTime(0.08, t);
-        gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.2);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(t);
-        osc.stop(t + 1.2);
-      });
-    } catch(e) {}
-  }
-
-  function triggerVibration() {
-    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-      try {
-        navigator.vibrate([200, 100, 300]);
-      } catch(e) {}
-    }
-  }
-
-  // =========================================================
-  // TIMER ENGINE
-  // =========================================================
-  let timerInterval = null;
-
-  function startTimer() {
-    clearInterval(timerInterval);
-    timerInterval = setInterval(tick, 1000);
-  }
-
-  function stopTimer() {
-    clearInterval(timerInterval);
-    timerInterval = null;
-  }
-
-  function tick() {
-    if (state.phase === 'focus') {
-      state.remainingSeconds--;
-      state.focusedSeconds++;
-      if (state.presenceEnabled) {
-        state.presenceCheckDue--;
-        if (state.presenceCheckDue <= 0) {
-          triggerPresenceCheck();
-          return;
-        }
-      }
-      updateTimerDisplay(state.remainingSeconds);
-      if (state.remainingSeconds <= 0) {
-        if (state.intervalsEnabled && state.currentIntervalType === 'focus') {
-          startInterval();
-        } else {
-          completeBlock();
-        }
-      }
-    } else if (state.phase === 'interval') {
-      state.remainingSeconds--;
-      updateTimerDisplay(state.remainingSeconds);
-      if (state.remainingSeconds <= 0) {
-        startFocusSegment();
-      }
-    }
-  }
-
-  // =========================================================
-  // COUNTDOWN
-  // =========================================================
-  let countdownInterval = null;
-
-  function triggerCountdownPulse() {
-    if (!el.countdownNumber) return;
-    el.countdownNumber.classList.remove('pulse');
-    void el.countdownNumber.offsetWidth; // retrigger reflow
-    el.countdownNumber.classList.add('pulse');
-  }
-
-  function startCountdown() {
-    getAudioContext();
-    state.phase = 'countdown';
-    state.countdownValue = 5;
-    el.countdownNumber.textContent = state.countdownValue;
-    triggerCountdownPulse();
-    playTick(false);
-    showScreen('countdown');
-
-    countdownInterval = setInterval(() => {
-      state.countdownValue--;
-      if (state.countdownValue > 0) {
-        el.countdownNumber.textContent = state.countdownValue;
-        triggerCountdownPulse();
-        playTick(false);
-      } else {
-        clearInterval(countdownInterval);
-        playTick(true);
-        beginFocus();
-      }
-    }, 1000);
-  }
-
-  function cancelCountdown() {
-    clearInterval(countdownInterval);
-    state.phase = 'idle';
-    showScreen('home');
-    exitFullscreen();
-  }
-
-  // =========================================================
-  // FOCUS FLOW
-  // =========================================================
-  function beginFocus() {
-    state.currentIntervalType = 'focus';
-    state.focusedSeconds = 0;
-    state.pausedSeconds = 0;
-    state.presenceCheckDue = state.presenceInterval * 60;
-    startFocusSegment();
-  }
-
-  function startFocusSegment() {
-    state.phase = 'focus';
-    state.currentIntervalType = 'focus';
-    state.totalSeconds = state.focusDuration * 60;
-    state.remainingSeconds = state.focusDuration * 60;
-    state.segmentStart = new Date();
-    state.presenceCheckDue = state.presenceInterval * 60;
-
-    el.focusStateLabel.className = 'focus-state-label';
-    el.focusStateLabel.innerHTML = '<span class="lbl-prefix">Hiperfoco\u00a0</span><span class="lbl-status">Ativado</span>';
-    el.timerColon.classList.remove('blinking');
-    el.btnPause.textContent = 'Pausar';
-    el.btnPause.classList.remove('resume');
-
-    // hide overlays
-    el.presenceOverlay.classList.remove('visible');
-    el.doneOverlay.classList.remove('visible');
-
-    updateTimerDisplay(state.remainingSeconds);
-    showScreen('focus');
-    startTimer();
-    acquireWakeLock();
-  }
-
-  function startInterval() {
-    stopTimer();
-    state.phase = 'interval';
-    state.currentIntervalType = 'interval';
-    state.remainingSeconds = state.intervalDuration * 60;
-
-    el.focusStateLabel.className = 'focus-state-label interval';
-    el.focusStateLabel.innerHTML = '<span class="lbl-prefix">Hiperfoco\u00a0</span><span class="lbl-status">Intervalo</span>';
-    el.timerColon.classList.remove('blinking');
-    el.btnPause.textContent = 'Encerrar';
-
-    updateTimerDisplay(state.remainingSeconds);
-    startTimer();
-  }
-
-  function pauseFocus() {
-    if (state.phase !== 'focus' && state.phase !== 'interval') return;
-    stopTimer();
-    state.pauseStart = new Date();
-    state.phase = 'paused';
-
-    el.focusStateLabel.className = 'focus-state-label paused';
-    el.focusStateLabel.innerHTML = '<span class="lbl-prefix">Hiperfoco\u00a0</span><span class="lbl-status">Pausado</span>';
-    el.timerColon.classList.add('blinking');
-    el.btnPause.textContent = 'Retomar';
-    el.btnPause.classList.add('resume');
-    releaseWakeLock();
-  }
-
-  function resumeFocus() {
-    if (state.phase !== 'paused') return;
-    if (state.pauseStart) {
-      state.pausedSeconds += Math.floor((new Date() - state.pauseStart) / 1000);
-      state.pauseStart = null;
-    }
-    // restart from beginning - user-requested behavior
-    startFocusSegment();
-  }
-
-  function endFocus() {
-    stopTimer();
-    clearPresenceCheck();
-    const focused = state.focusedSeconds;
-    addLocalStat(focused);
-    state.phase = 'idle';
-    exitFullscreen();
-    releaseWakeLock();
-    showScreen('home');
-    syncConfigUI();
-  }
-
-  function completeBlock() {
-    stopTimer();
-    clearPresenceCheck();
-    const focused = state.focusedSeconds;
-    addLocalStat(focused);
-    state.phase = 'done';
-    releaseWakeLock();
-
-    // Sound & Vibration
-    playCompletionChime();
-    triggerVibration();
-
-    const t = formatTimer(focused);
-    el.doneLabel.textContent = 'Presença registrada';
-    el.doneTimeDisplay.textContent = `${t.mm}:${t.ss}`;
-    el.doneDesc.textContent = 'de foco consciente';
-
-    const quotes = [
-      'Presença cultivada, mente alinhada.',
-      'Mais um passo consciente em direção ao essencial.',
-      'O silêncio do foco constrói o que permanece.',
-      'Atenção plena concluída com serenidade.',
-      'Consistência diária supera qualquer intensidade.',
-      'A mente focada é imune às distrações passageiras.',
-      'Cada bloco concluído é um voto em quem você quer se tornar.'
-    ];
-    const quoteIndex = new Date().getDate() % quotes.length;
-    el.doneQuote.textContent = `"${quotes[quoteIndex]}"`;
-
-    el.doneOverlay.classList.add('visible');
-    el.focusControls.classList.remove('visible');
-    exitFullscreen();
-  }
-
-  // =========================================================
-  // PRESENCE CHECK
-  // =========================================================
-  let presenceCountdownInterval = null;
-
-  function triggerPresenceCheck() {
-    stopTimer();
-    state.phase = 'presence';
-    state.presenceCountdown = 10;
-
-    el.focusStateLabel.className = 'focus-state-label presence';
-    el.focusStateLabel.textContent = 'Voltar ao foco';
-    el.presenceOverlay.classList.add('visible');
-    el.focusControls.classList.remove('visible');
-    el.presenceCountdown.textContent = `${state.presenceCountdown}s`;
-
-    presenceCountdownInterval = setInterval(() => {
-      state.presenceCountdown--;
-      el.presenceCountdown.textContent = `${state.presenceCountdown}s`;
-      if (state.presenceCountdown <= 0) {
-        clearPresenceCheck();
-        pauseFocus();
-        el.presenceOverlay.classList.remove('visible');
-      }
-    }, 1000);
-  }
-
-  function confirmPresence() {
-    clearPresenceCheck();
-    el.presenceOverlay.classList.remove('visible');
-    // resume from where we left off, reset presence check
-    state.presenceCheckDue = state.presenceInterval * 60;
-    state.phase = 'focus';
-    el.focusStateLabel.className = 'focus-state-label';
-    el.focusStateLabel.textContent = 'Hiperfoco ativado';
-    startTimer();
-  }
-
-  function clearPresenceCheck() {
-    clearInterval(presenceCountdownInterval);
-    presenceCountdownInterval = null;
-  }
-
-  // =========================================================
-  // CONTROLS VISIBILITY
-  // =========================================================
-  function showControls() {
-    clearTimeout(state.controlsTimeout);
-    state.controlsVisible = true;
-    el.focusControls.classList.add('visible');
-    state.controlsTimeout = setTimeout(hideControls, 3000);
-  }
-
-  function hideControls() {
-    state.controlsVisible = false;
-    el.focusControls.classList.remove('visible');
-  }
-
-  // =========================================================
-  // FULLSCREEN & WAKE LOCK
-  // =========================================================
-  function requestFullscreen() {
-    const el = document.documentElement;
-    if (el.requestFullscreen) el.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
-    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-  }
-
-  function exitFullscreen() {
-    if (document.fullscreenElement || document.webkitFullscreenElement) {
-      if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
-      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-    }
-  }
-
-  async function acquireWakeLock() {
-    if (!('wakeLock' in navigator)) return;
-    try {
-      state.wakeLock = await navigator.wakeLock.request('screen');
-    } catch(e) {}
-  }
-
-  function releaseWakeLock() {
-    if (state.wakeLock) { state.wakeLock.release().catch(() => {}); state.wakeLock = null; }
-  }
-
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && state.phase === 'focus') acquireWakeLock();
-  });
-
-  // =========================================================
-  // KEYBOARD SHORTCUTS
-  // =========================================================
-  document.addEventListener('keydown', e => {
-    if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
-
-    // Only in focus/countdown screens
-    const inImmersive = ['countdown','focus','paused','presence','done'].includes(state.phase);
-    if (!inImmersive) return;
-
-    if (e.code === 'Escape') {
-      exitFullscreen();
-    } else if (e.code === 'KeyF') {
-      e.preventDefault();
-      requestFullscreen();
-    } else if (e.code === 'Space') {
-      e.preventDefault();
-      if (state.phase === 'countdown') {
-        cancelCountdown();
-      } else if (state.phase === 'focus' || state.phase === 'interval') {
-        pauseFocus();
-      } else if (state.phase === 'paused') {
-        resumeFocus();
-      } else if (state.phase === 'done') {
-        returnHome();
-      }
-    }
-  });
-
-  // =========================================================
-  // RETURN HOME
-  // =========================================================
-  function returnHome() {
-    state.phase = 'idle';
-    el.doneOverlay.classList.remove('visible');
-    el.presenceOverlay.classList.remove('visible');
-    el.focusControls.classList.remove('visible');
-    showScreen('home');
-    syncConfigUI();
-    exitFullscreen();
-  }
-
-  // =========================================================
-  // AUTH (local mock — no Supabase credentials provided)
-  // =========================================================
-  let authMode = 'login'; // 'login' | 'register'
-
-  function openAuth() {
-    el.modalAuth.classList.add('open');
-    el.authEmail.focus();
-  }
-
-  function closeAuth() {
-    el.modalAuth.classList.remove('open');
-    el.authError.textContent = '';
-  }
-
-  function openProfile() {
-    // populate stats
-    el.profileName.textContent = state.user?.name || state.user?.email?.split('@')[0] || '—';
-    el.profileEmail.textContent = state.user?.email || '—';
-    el.statToday.textContent  = formatSeconds(getStatForPeriod('today')) || '0min';
-    el.statWeek.textContent   = formatSeconds(getStatForPeriod('week'))  || '0min';
-    el.statMonth.textContent  = formatSeconds(getStatForPeriod('month')) || '0min';
-    const sessions = JSON.parse(localStorage.getItem('hiperfoco_sessions') || '[]');
-    el.statSessions.textContent = sessions.length;
-    el.modalProfile.classList.add('open');
-  }
-
-  function closeProfile() {
-    el.modalProfile.classList.remove('open');
-  }
-
-  function setAuthMode(mode) {
-    authMode = mode;
-    if (mode === 'login') {
-      el.btnAuthSubmit.textContent = 'Entrar';
-      el.btnAuthModeToggle.textContent = 'Criar conta';
-      el.authForm.previousElementSibling; // no-op
-      el.modalAuth.querySelector('.auth-toggle .auth-toggle-text').textContent = 'Não tem conta?';
-    } else {
-      el.btnAuthSubmit.textContent = 'Criar conta';
-      el.btnAuthModeToggle.textContent = 'Já tenho conta';
-      el.modalAuth.querySelector('.auth-toggle .auth-toggle-text').textContent = 'Já tem conta?';
-    }
-    el.authError.textContent = '';
-  }
-
-  function handleAuthSubmit(e) {
-    e.preventDefault();
-    const email = el.authEmail.value.trim();
-    const password = el.authPassword.value;
-
-    if (!email || !password) {
-      el.authError.textContent = 'Preencha e-mail e senha.';
-      return;
-    }
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      el.authError.textContent = 'E-mail inválido.';
-      return;
-    }
-    if (password.length < 6) {
-      el.authError.textContent = 'Senha deve ter ao menos 6 caracteres.';
-      return;
-    }
-
-    el.btnAuthSubmit.disabled = true;
-    el.btnAuthSubmit.textContent = '...';
-
-    // Local auth simulation
-    setTimeout(() => {
-      const users = JSON.parse(localStorage.getItem('hiperfoco_users') || '{}');
-
-      if (authMode === 'register') {
-        if (users[email]) {
-          el.authError.textContent = 'E-mail já cadastrado.';
-          el.btnAuthSubmit.disabled = false;
-          el.btnAuthSubmit.textContent = 'Criar conta';
-          return;
-        }
-        users[email] = { email, password, name: email.split('@')[0] };
-        localStorage.setItem('hiperfoco_users', JSON.stringify(users));
-        loginUser({ email, name: email.split('@')[0] });
-      } else {
-        const u = users[email];
-        if (!u || u.password !== password) {
-          el.authError.textContent = 'E-mail ou senha incorretos.';
-          el.btnAuthSubmit.disabled = false;
-          el.btnAuthSubmit.textContent = 'Entrar';
-          return;
-        }
-        loginUser({ email, name: u.name || email.split('@')[0] });
-      }
-    }, 600);
-  }
-
-  function loginUser(user) {
-    state.user = user;
-    localStorage.setItem('hiperfoco_user', JSON.stringify(user));
-    closeAuth();
-    el.btnAuthHeader.textContent = user.name || user.email;
-    el.btnAuthHeader.onclick = openProfile;
-    el.btnAuthSubmit.disabled = false;
-    el.btnAuthSubmit.textContent = 'Entrar';
-    updateTodaySummary();
-  }
-
-  function logout() {
-    state.user = null;
-    localStorage.removeItem('hiperfoco_user');
-    closeProfile();
-    el.btnAuthHeader.textContent = 'Entrar';
-    el.btnAuthHeader.onclick = openAuth;
-  }
-
-  function restoreSession() {
-    try {
-      const u = JSON.parse(localStorage.getItem('hiperfoco_user') || 'null');
-      if (u) loginUser(u);
-    } catch(e) {}
-  }
-
-  // =========================================================
-  // SAVE SESSION
-  // =========================================================
-  function saveSession(status) {
-    const sessions = JSON.parse(localStorage.getItem('hiperfoco_sessions') || '[]');
-    sessions.push({
-      id: Date.now(),
-      startedAt: state.segmentStart,
-      endedAt: new Date(),
-      plannedSeconds: state.totalSeconds,
-      focusedSeconds: state.focusedSeconds,
-      pausedSeconds: state.pausedSeconds,
-      status,
-    });
-    localStorage.setItem('hiperfoco_sessions', JSON.stringify(sessions));
-  }
-
-  // =========================================================
-  // EVENT BINDINGS
-  // =========================================================
-  function bindEvents() {
-    // Config toggles
-    el.toggleIntervals.addEventListener('change', () => {
-      state.intervalsEnabled = el.toggleIntervals.checked;
-      el.toggleIntervals.setAttribute('aria-checked', state.intervalsEnabled);
-      el.revealInterval.classList.toggle('is-open', state.intervalsEnabled);
-      saveConfig();
-    });
-
-    el.togglePresence.addEventListener('change', () => {
-      state.presenceEnabled = el.togglePresence.checked;
-      el.togglePresence.setAttribute('aria-checked', state.presenceEnabled);
-      el.revealPresence.classList.toggle('is-open', state.presenceEnabled);
-      saveConfig();
-    });
-
-    // Number inputs
-    setupNumInput('duration-minus',  'duration-plus',  'focus-duration-display',    'focusDuration',    5,  180, 5);
-    setupNumInput('interval-minus',  'interval-plus',  'interval-duration-display', 'intervalDuration', 1,   60, 1);
-    setupNumInput('presence-minus',  'presence-plus',  'presence-interval-display', 'presenceInterval', 5,   60, 5);
-
-    // Start button
-    el.btnStart.addEventListener('click', () => {
-      requestFullscreen();
-      startCountdown();
-    });
-
-    // Countdown screen: tap to cancel
-    screens.countdown.addEventListener('click', cancelCountdown);
-
-    // Focus screen: tap to show controls
-    screens.focus.addEventListener('click', (e) => {
-      if (state.phase === 'presence') return; // handled by overlay buttons
-      if (state.phase === 'done') return;      // handled by done button
-      if (e.target.closest('.focus-controls')) return; // button clicks handled separately
-      if (e.target.closest('.presence-overlay')) return;
-      if (e.target.closest('.done-overlay')) return;
-
-      if (state.controlsVisible) {
-        hideControls();
-      } else {
-        showControls();
-      }
-    });
-
-    // Pause / Resume
-    el.btnPause.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (state.phase === 'paused') {
-        resumeFocus();
-      } else if (state.phase === 'focus' || state.phase === 'interval') {
-        pauseFocus();
-      }
-      hideControls();
-    });
-
-    // End
-    el.btnEnd.addEventListener('click', (e) => {
-      e.stopPropagation();
-      saveSession('cancelled');
-      endFocus();
-    });
-
-    // Presence check confirm
-    el.btnImHere.addEventListener('click', (e) => {
-      e.stopPropagation();
-      confirmPresence();
-    });
-
-    // Done back
-    el.btnDoneBack.addEventListener('click', (e) => {
-      e.stopPropagation();
-      saveSession('completed');
-      returnHome();
-    });
-
-    // Auth modal
-    el.btnAuthHeader.addEventListener('click', openAuth);
-    el.btnCloseAuth.addEventListener('click', closeAuth);
-    el.modalAuth.addEventListener('click', (e) => { if (e.target === el.modalAuth) closeAuth(); });
-    el.authForm.addEventListener('submit', handleAuthSubmit);
-    el.btnAuthModeToggle.addEventListener('click', () => {
-      setAuthMode(authMode === 'login' ? 'register' : 'login');
-    });
-
-    // Profile modal
-    el.btnCloseProfile.addEventListener('click', closeProfile);
-    el.modalProfile.addEventListener('click', (e) => { if (e.target === el.modalProfile) closeProfile(); });
-    el.btnLogout.addEventListener('click', logout);
-
-    // Dark mode toggle (already dark by default; this is a placeholder)
-    el.toggleDarkMode.addEventListener('change', () => {
-      // In a full implementation this would toggle a light theme
-      // For now, always dark
-      el.toggleDarkMode.checked = true;
-    });
-  }
-
-  // =========================================================
-  // INIT
-  // =========================================================
-  function init() {
-    loadLocal();
-    syncConfigUI();
-    bindEvents();
-    restoreSession();
-    updateTodaySummary();
-  }
-
-  init();
-  </script>
+  else if(S.st==='check'){if(n>=S.dl){S.st='pause';S.pAt=n}}
+  else if(S.st==='break'){if(n>=S.bEnd){S.st='done';alert_([200],[659,523])}}
+  ui();
+};
+const finish=()=>{S.acc=S.plan;record('completed');alert_([200,100,200],[523,659,784]);if(cfg.brk){S.st='break';S.bEnd=now()+cfg.brkMin*60000}else S.st='done'};
+const pauseF=()=>{if(S.st!=='focus')return;S.acc+=now()-S.seg;S.st='pause';S.pAt=now();ui()};
+const resumeF=()=>{if(S.st!=='pause')return;rfs();S.rec=false;record('interrupted');S.rec=false;S.acc=0;S.pz=0;S.checks=0;S.t=new Date().toISOString();S.st='focus';S.seg=now();ui()};
+const okF=()=>{if(S.st!=='check')return;S.st='focus';S.seg=now();ui()};
+const home=()=>{clearInterval(tm);S=null;ls.set('hf_run',null);unlock();xfs();imm.classList.remove('on','show');imm.innerHTML='';$('#home').hidden=false;render()};
+const endF=()=>{if(['focus','pause'].includes(S.st)){S.cfm=true;S.cst=S.st;ui();return}home()};
+const end2=()=>{if(['focus','pause','check'].includes(S.st))record('cancelled');home()};
+const keepF=()=>{S.cfm=false;ui()};
+const start=()=>{
+  if(S)return;
+  S={st:'prep',cat:cfg.cat,t0:now()+5000,plan:cfg.focus*60000,acc:0,pz:0,checks:0,t:new Date().toISOString()};
+  $('#home').hidden=true;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();ac.resume&&ac.resume()}catch(e){}rfs();tm=setInterval(tick,200);ui();
+};
+$('#go').addEventListener('click',start);
+const peek=()=>{clearTimeout(S.ht);const on=imm.classList.toggle('show');if(on)S.ht=setTimeout(()=>imm.classList.remove('show'),4000)};
+imm.addEventListener('click',e=>{
+  if(!S)return;
+  if(S.st==='prep'){home();return}
+  const a=e.target.closest('[data-act]');
+  if(a){({pause:pauseF,resume:resumeF,end:endF,end2,keep:keepF,ok:okF,home}[a.dataset.act]||(()=>{}))();return}
+  if(!S.cfm&&(S.st==='focus'||S.st==='break'))peek();
+});
+addEventListener('keydown',e=>{
+  if(!S||e.ctrlKey||e.metaKey||e.altKey||e.repeat)return;
+  if(e.code==='Space'){
+    e.preventDefault();document.activeElement&&document.activeElement.blur&&document.activeElement.blur();
+    if(S.cfm){keepF();return}
+    ({prep:home,focus:pauseF,pause:resumeF,check:okF,done:home}[S.st]||(()=>{}))();
+  }else if(e.key==='f'||e.key==='F'){e.preventDefault();rfs()}
+  else if(e.key==='Tab'&&(S.st==='focus'||S.st==='break'))imm.classList.add('show');
+});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S&&['prep','focus','check','break'].includes(S.st))lock()});
+/* relatório diário */
+const CATS=[{k:'v',n:'Vendas',c:'#c8f560'},{k:'g',n:'Gestão e desenvolvimento',c:'#7d92c4'},{k:'l',n:'Atividade livre',c:'#b8ad9a'},{k:'x',n:'Sem categoria',c:'#4a4f5c'}];
+const catOf=k=>CATS.find(c=>c.k===k)||CATS[3];
+const fd=s=>s<60?s+'s':fmt(s);
+let rd=0;
+const repEl=$('#rep');
+const renderRep=()=>{
+  const d=new Date();d.setDate(d.getDate()+rd);
+  const k=d.toLocaleDateString('sv');
+  const all=ls.get('hf_sess',[]).filter(r=>new Date(r.s).toLocaleDateString('sv')===k).sort((a,b)=>a.s<b.s?-1:1);
+  const tot=all.reduce((a,r)=>a+r.f,0),n=all.length,pl=all.reduce((a,r)=>a+(r.pl||0),0);
+  $('#d-title').textContent=rd===0?'Hoje':rd===-1?'Ontem':d.toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short'});
+  $('#d-next').disabled=rd>=0;
+  $('#m-foco').textContent=fmt(tot);
+  $('#m-blocos').textContent=n;
+  $('#m-media').textContent=n?fmt(Math.round(tot/n)):'—';
+  $('#m-plan').textContent=n?'de '+fmt(Math.round(pl/n))+' definidos':'';
+  const sums={};
+  all.forEach(r=>{const c=catOf(r.cat).k;sums[c]=(sums[c]||0)+r.f});
+  const rows=CATS.filter(c=>c.k!=='x'||sums.x);
+  const bar=$('#bar');
+  bar.innerHTML=tot?rows.filter(c=>sums[c.k]).map(c=>'<i style="width:'+(sums[c.k]/tot*100)+'%;background:'+c.c+'"></i>').join(''):'';
+  bar.setAttribute('aria-label',rows.filter(c=>sums[c.k]).map(c=>c.n+' '+fmt(sums[c.k])).join(', ')||'Sem dados neste dia');
+  $('#dl').innerHTML=rows.map(c=>{const v=sums[c.k]||0;return '<li><i class="dot" style="background:'+c.c+'"></i><span class="n">'+c.n+'</span><span class="t">'+fmt(v)+'</span><span class="p">'+(tot?Math.round(v/tot*100):0)+'%</span></li>'}).join('');
+  $('#bl').innerHTML=n?all.map(r=>{const c=catOf(r.cat),t=new Date(r.s).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});return '<li><span class="tm">'+t+'</span><i class="dot" style="background:'+c.c+'"></i><span class="n">'+c.n+'</span><span class="t">'+fd(r.f)+(r.st!=='completed'?'<em>de '+fmt(r.pl)+'</em>':'')+'</span></li>'}).join(''):'<li class="empty">Nenhum bloco neste dia.</li>';
+};
+const openRep=()=>{rd=0;$('#home').hidden=true;repEl.hidden=false;renderRep();scrollTo(0,0)};
+const closeRep=()=>{repEl.hidden=true;$('#home').hidden=false;render()};
+$('#open-rep').addEventListener('click',openRep);
+$('#rep-back').addEventListener('click',closeRep);
+$('#d-prev').addEventListener('click',()=>{rd--;renderRep()});
+$('#d-next').addEventListener('click',()=>{if(rd<0){rd++;renderRep()}});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&!repEl.hidden)closeRep()});
+addEventListener('pagehide',()=>persist());
+document.addEventListener('visibilitychange',()=>{if(document.hidden)persist()});
+try{const r=ls.get('hf_run',null);if(r&&now()-r.at<216e5&&r.acc<r.plan){S={st:'pause',cat:r.cat,plan:r.plan,acc:r.acc,pz:r.pz||0,checks:r.checks||0,t:r.t,pAt:now(),seg:0};$('#home').hidden=true;tm=setInterval(tick,200);ui()}else if(r)ls.set('hf_run',null)}catch(e){}
+render();
+})();
+</script>
 </body>
 </html>
