@@ -76,6 +76,8 @@ main{width:min(100%,520px);margin:0 auto;padding:0 clamp(20px,6vw,32px)}
 .seg button[aria-pressed=true]::after{background:var(--acc);box-shadow:0 0 6px 1px rgba(200,245,96,.7),0 0 18px 4px rgba(200,245,96,.25)}
 button.today{display:block;width:100%;background:none;border:0;padding:8px 0;margin:2px 0 calc(clamp(36px,9vh,64px) - 8px);transition:opacity 200ms ease}
 button.today:active{opacity:.6}
+.pulse{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 70px 6px rgba(200,245,96,.42),inset 0 0 200px 30px rgba(200,245,96,.2);animation:pl 2.2s ease-in-out infinite alternate}
+@keyframes pl{from{opacity:.2}to{opacity:1}}
 .fl{animation:fl 1100ms ease}
 @keyframes fl{0%{opacity:.25}100%{opacity:1}}
 .ml.sec{background:none;border:0;padding:12px 24px 4px 0;margin:-12px 0 -4px;text-align:left;font-size:14px}
@@ -223,7 +225,7 @@ const TPL={
   prep:()=>'<div class="big" id="t"></div><p class="hint">Toque ou pressione Espaço para cancelar</p>',
   focus:()=>'<p class="lab">Hiperfoco <b>ativado</b></p><div class="time" id="t"></div><div class="ctl"><button type="button" data-act="pause">Pausar</button><button type="button" data-act="end">Encerrar</button></div>',
   pause:()=>'<p class="sub top">Ao retomar, o bloco recomeça do início.</p><p class="lab">Hiperfoco <b>pausado</b></p><div class="time paused" id="t"></div><div class="ctl keep"><button type="button" class="pill" data-act="resume">Recomeçar bloco</button><button type="button" data-act="end">Encerrar</button></div>',
-  check:()=>'<p class="q">Você ainda está aqui?</p><div class="cnt" id="t"></div><button type="button" class="pill" data-act="ok">Estou aqui</button>',
+  check:()=>'<div class="pulse" aria-hidden="true"></div><p class="q">Você ainda está aqui?</p><div class="cnt" id="t"></div><button type="button" class="pill" data-act="ok">Estou aqui</button>',
   break:()=>'<p class="lab">Intervalo</p><div class="time" id="t"></div><div class="ctl"><button type="button" data-act="end">Encerrar</button></div>',
   cfm:()=>'<p class="q">Encerrar o bloco?</p><p class="sub">O tempo focado até aqui fica salvo.</p><div class="duo"><button type="button" class="pill" data-act="keep">Continuar</button><button type="button" class="ghost" data-act="end2">Encerrar</button></div>',
   done:()=>'<p class="lab">Bloco <b>concluído</b></p><div class="time sm" id="t"></div><p class="hint" style="position:static;margin-top:12px">Tempo de presença</p><button type="button" class="pill" data-act="home">Voltar ao início</button>'
@@ -232,6 +234,34 @@ let ac=null;
 const beep=f=>{try{if(!ac)return;const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.12,t+.04);g.gain.exponentialRampToValueAtTime(.0001,t+.4);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+.45)}catch(e){}};
 const gong=()=>{try{navigator.vibrate&&navigator.vibrate(80)}catch(e){}try{if(!ac)return;const t=ac.currentTime;[196,294,392].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.12/(i+1)+.03,t+.05);g.gain.exponentialRampToValueAtTime(.0001,t+1.6);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+1.7)})}catch(e){}};
 const alert_=(v,tones)=>{try{navigator.vibrate&&navigator.vibrate(v)}catch(e){}tones.forEach((f,i)=>setTimeout(()=>beep(f),i*230))};
+/* chamado de volta: sino suave que insiste em tocar mesmo no silencioso */
+const aSess=t=>{try{if(navigator.audioSession)navigator.audioSession.type=t}catch(e){}};
+const wav=()=>{
+  const sr=22050,n=Math.floor(sr*2.2),h=new DataView(new ArrayBuffer(44+n*2)),w=(o,s)=>{for(let i=0;i<s.length;i++)h.setUint8(o+i,s.charCodeAt(i))};
+  w(0,'RIFF');h.setUint32(4,36+n*2,true);w(8,'WAVE');w(12,'fmt ');h.setUint32(16,16,true);h.setUint16(20,1,true);h.setUint16(22,1,true);h.setUint32(24,sr,true);h.setUint32(28,sr*2,true);h.setUint16(32,2,true);h.setUint16(34,16,true);w(36,'data');h.setUint32(40,n*2,true);
+  const notes=[[392,0],[587.33,.3]],P=2*Math.PI;
+  for(let i=0;i<n;i++){
+    let v=0;
+    for(const[f,o]of notes){const x=i/sr-o;if(x<0)continue;v+=Math.min(1,x/.02)*Math.exp(-x*3.2)*(Math.sin(P*f*x)+.25*Math.exp(-x*3)*Math.sin(P*f*2*x)+.08*Math.exp(-x*5)*Math.sin(P*f*3*x))}
+    h.setInt16(44+i*2,Math.max(-1,Math.min(1,v*.4))*32767,true);
+  }
+  return URL.createObjectURL(new Blob([h.buffer],{type:'audio/wav'}));
+};
+let ae=null,au=false;
+const unlockAudio=()=>{
+  aSess('playback');
+  try{
+    if(!ae){ae=new Audio(wav());ae.preload='auto';ae.volume=.6;ae.setAttribute('playsinline','')}
+    if(!au){au=true;ae.muted=true;const p=ae.play();if(p&&p.then)p.then(()=>{ae.pause();ae.currentTime=0;ae.muted=false}).catch(()=>{au=false;ae.muted=false})}
+  }catch(e){}
+};
+const bell=()=>{beep(392);setTimeout(()=>beep(587),300)};
+const chime=()=>{
+  try{navigator.vibrate&&navigator.vibrate([120,90,120])}catch(e){}
+  try{if(ae){ae.muted=false;ae.currentTime=0;const p=ae.play();if(p&&p.catch)p.catch(bell);return}}catch(e){}
+  bell();
+};
+const stopChime=()=>{try{ae&&ae.pause()}catch(e){}};
 const persist=()=>{if(!S)return;if(!['focus','pause','check'].includes(S.st)){ls.set('hf_run',null);return}ls.set('hf_run',{cat:S.cat,plan:S.plan,acc:Math.min(fms(),S.plan),pz:S.pz+(S.st==='pause'?now()-S.pAt:0),checks:S.checks,t:S.t,at:now()})};
 const record=st=>{
   if(S.rec)return;S.rec=true;
@@ -262,24 +292,24 @@ const tick=()=>{
   if(S.st==='prep'){if(n>=S.t0){S.st='focus';S.seg=n;S.acc=0;gong()}}
   else if(S.st==='focus'){
     if(fms()>=S.plan)finish();
-    else if(cfg.chk&&n-S.seg>=cfg.chkMin*60000){S.acc+=n-S.seg;S.st='check';S.dl=n+10000;S.checks++;alert_([120],[660])}
+    else if(cfg.chk&&n-S.seg>=cfg.chkMin*60000){S.acc+=n-S.seg;S.st='check';S.dl=n+10000;S.nc=n+4000;S.checks++;chime()}
   }
-  else if(S.st==='check'){if(n>=S.dl){S.st='pause';S.pAt=n}}
+  else if(S.st==='check'){if(n>=S.dl){S.st='pause';S.pAt=n}else if(n>=S.nc){S.nc=n+4000;chime()}}
   else if(S.st==='break'){if(n>=S.bEnd){S.st='done';alert_([200],[659,523])}}
   ui();
 };
 const finish=()=>{S.acc=S.plan;record('completed');alert_([200,100,200],[523,659,784]);if(cfg.brk){S.st='break';S.bEnd=now()+cfg.brkMin*60000}else S.st='done'};
 const pauseF=()=>{if(S.st!=='focus')return;S.acc+=now()-S.seg;S.st='pause';S.pAt=now();ui()};
-const resumeF=()=>{if(S.st!=='pause')return;rfs();S.rec=false;record('interrupted');S.rec=false;S.acc=0;S.pz=0;S.checks=0;S.t=new Date().toISOString();S.st='focus';S.seg=now();ui()};
-const okF=()=>{if(S.st!=='check')return;S.st='focus';S.seg=now();ui()};
-const home=()=>{clearInterval(tm);S=null;ls.set('hf_run',null);unlock();xfs();imm.classList.remove('on','show');imm.innerHTML='';$('#home').hidden=false;render()};
+const resumeF=()=>{if(S.st!=='pause')return;unlockAudio();rfs();S.rec=false;record('interrupted');S.rec=false;S.acc=0;S.pz=0;S.checks=0;S.t=new Date().toISOString();S.st='focus';S.seg=now();ui()};
+const okF=()=>{if(S.st!=='check')return;stopChime();S.st='focus';S.seg=now();ui()};
+const home=()=>{clearInterval(tm);S=null;ls.set('hf_run',null);stopChime();aSess('auto');unlock();xfs();imm.classList.remove('on','show');imm.innerHTML='';$('#home').hidden=false;render()};
 const endF=()=>{if(['focus','pause'].includes(S.st)){S.cfm=true;S.cst=S.st;ui();return}home()};
 const end2=()=>{if(['focus','pause','check'].includes(S.st))record('cancelled');home()};
 const keepF=()=>{S.cfm=false;ui()};
 const start=()=>{
   if(S)return;
   S={st:'prep',cat:cfg.cat,t0:now()+5000,plan:cfg.focus*60000,acc:0,pz:0,checks:0,t:new Date().toISOString()};
-  $('#home').hidden=true;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();ac.resume&&ac.resume()}catch(e){}rfs();tm=setInterval(tick,200);ui();
+  $('#home').hidden=true;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();ac.resume&&ac.resume()}catch(e){}unlockAudio();rfs();tm=setInterval(tick,200);ui();
 };
 $('#go').addEventListener('click',start);
 const peek=()=>{clearTimeout(S.ht);const on=imm.classList.toggle('show');if(on)S.ht=setTimeout(()=>imm.classList.remove('show'),4000)};
