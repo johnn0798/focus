@@ -51,6 +51,13 @@ main{width:min(100%,520px);margin:0 auto;padding:0 clamp(20px,6vw,32px)}
 .paused .co{animation:bl 1.4s ease-in-out infinite}
 @keyframes bl{0%,100%{opacity:1}50%{opacity:.12}}
 .time.sm{font-size:clamp(48px,min(16vw,22vh),160px)}
+.time.calm{color:#454a57;transition:color 500ms ease}
+.time.calm .sec{opacity:.55}
+.lab.calm{color:#2e323b;transition:color 500ms ease}
+.lab.calm b{color:rgba(200,245,96,.38);transition:color 500ms ease}
+#imm.show .time.calm{color:#9a9fac}
+#imm.show .lab.calm{color:var(--mut)}
+#imm.show .lab.calm b{color:var(--acc)}
 .big{font-weight:300;font-size:clamp(96px,min(40vw,45vh),360px);line-height:1;font-variant-numeric:tabular-nums}
 .hint{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 32px);margin:0;color:var(--mut);font-size:14px;padding:0 24px}
 .q{margin:0;font-size:clamp(22px,6vw,34px);font-weight:300}
@@ -223,7 +230,7 @@ const imm=$('#imm'),now=()=>Date.now();
 const fms=()=>S.acc+(S.st==='focus'?now()-S.seg:0);
 const TPL={
   prep:()=>'<div class="big" id="t"></div><p class="hint">Toque ou pressione Espaço para cancelar</p>',
-  focus:()=>'<p class="lab">Hiperfoco <b>ativado</b></p><div class="time" id="t"></div><div class="ctl"><button type="button" data-act="pause">Pausar</button><button type="button" data-act="end">Encerrar</button></div>',
+  focus:()=>'<p class="lab calm">Hiperfoco <b>ativado</b></p><div class="time calm" id="t"></div><div class="ctl"><button type="button" data-act="pause">Pausar</button><button type="button" data-act="end">Encerrar</button></div>',
   pause:()=>'<p class="sub top">Ao retomar, o bloco recomeça do início.</p><p class="lab">Hiperfoco <b>pausado</b></p><div class="time paused" id="t"></div><div class="ctl keep"><button type="button" class="pill" data-act="resume">Recomeçar bloco</button><button type="button" data-act="end">Encerrar</button></div>',
   check:()=>'<div class="pulse" aria-hidden="true"></div><p class="q">Você ainda está aqui?</p><div class="cnt" id="t"></div><button type="button" class="pill" data-act="ok">Estou aqui</button>',
   break:()=>'<p class="lab">Intervalo</p><div class="time" id="t"></div><div class="ctl"><button type="button" data-act="end">Encerrar</button></div>',
@@ -284,7 +291,7 @@ const ui=()=>{
   else if(S.st==='check')v=Math.max(0,Math.ceil((S.dl-n)/1000));
   else if(S.st==='break')v=clk(S.bEnd-n);
   else v=fmt(Math.round(S.acc/1000));
-  const h=String(v).replace(/:/g,'<i class="co">:</i>');if(t.dataset.h!==h){t.dataset.h=h;t.innerHTML=h}
+  let h=String(v).replace(/:/g,'<i class="co">:</i>');if(S.st==='focus')h=h.replace(/(<i class="co">:<\/i>)(\d\d)$/,'$1<span class="sec">$2</span>');if(t.dataset.h!==h){t.dataset.h=h;t.innerHTML=h}
   t.classList.toggle('lg',t.classList.contains('time')&&String(v).length>5);
 };
 const tick=()=>{
